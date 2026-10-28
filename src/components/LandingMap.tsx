@@ -472,14 +472,32 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 					</p>
 					<p className="text-sm text-slate-500 dark:text-slate-400">{hint}</p>
 				</div>
-				<div className="flex flex-wrap gap-2">
-					<button className="icon-button" type="button" onClick={() => zoomBy(1 / 1.2)}>
+				<div className="map-controls flex flex-wrap gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-800">
+					<button
+						aria-label="Zoom out"
+						className="map-control-button"
+						title="Zoom out"
+						type="button"
+						onClick={() => zoomBy(1 / 1.2)}
+					>
 						−
 					</button>
-					<button className="icon-button" type="button" onClick={() => zoomBy(1.2)}>
+					<button
+						aria-label="Zoom in"
+						className="map-control-button"
+						title="Zoom in"
+						type="button"
+						onClick={() => zoomBy(1.2)}
+					>
 						+
 					</button>
-					<button className="secondary" type="button" onClick={resetView}>
+					<button
+						aria-label="Fit map view"
+						className="map-control-button map-fit-button"
+						title="Fit map view"
+						type="button"
+						onClick={resetView}
+					>
 						Fit view
 					</button>
 				</div>
@@ -521,7 +539,7 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 						</p>
 					</div>
 				)}
-				<div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+				<div className="pointer-events-none absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300 sm:gap-2 sm:text-[11px]">
 					<span className="rounded-full bg-white/90 px-2 py-1 shadow-sm dark:bg-slate-800/90">Orange path · shot</span>
 					<span className="rounded-full bg-white/90 px-2 py-1 shadow-sm dark:bg-slate-800/90">Blue fan · reachable A</span>
 					<span className="rounded-full bg-white/90 px-2 py-1 shadow-sm dark:bg-slate-800/90">Rings · measured</span>

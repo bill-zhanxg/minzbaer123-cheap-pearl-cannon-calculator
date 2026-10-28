@@ -106,7 +106,7 @@ function App() {
 
 	return (
 		<main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-6">
-			<div className="mx-auto max-w-5xl">
+			<div className="mx-auto max-w-[120rem]">
 				<header className="mb-8">
 					<div className="mb-3 inline-flex rounded-2xl bg-orange-100 p-3 text-orange-700 dark:bg-orange-950 dark:text-orange-300">
 						<Icon name="cannon" size={26} />
@@ -212,83 +212,84 @@ function App() {
 					</div>
 				</section>
 
-				<section className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
-					<LandingMap
-						a={aValue}
-						b={bValue}
-						origin={origin}
-						shot={shot}
-						target={target}
-						onAim={aimAt}
-						onSteer={(nextA) => setA(String(nextA))}
-					/>
-				</section>
+				<div className="grid items-start gap-6 lg:grid-cols-2">
+					<section className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
+						<LandingMap
+							a={aValue}
+							b={bValue}
+							origin={origin}
+							shot={shot}
+							target={target}
+							onAim={aimAt}
+							onSteer={(nextA) => setA(String(nextA))}
+						/>
+					</section>
 
-				<section
-					aria-labelledby="results-heading"
-					className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7"
-				>
-					<div className="mb-6 flex items-center justify-between gap-4">
-						<div>
-							<p className="mb-1 text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
-								Calculated result
-							</p>
-							<h2 id="results-heading" className="text-2xl font-black tracking-tight">
-								Landing coordinates
-							</h2>
-						</div>
-						<div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-							<Icon name="map" />
-						</div>
-					</div>
-					<div className="mb-5 rounded-2xl bg-orange-50 p-5 dark:bg-orange-950/40">
-						<p className="mb-4 text-sm font-semibold text-orange-700 dark:text-orange-300">Destination coordinates</p>
-						<div className="grid gap-5 sm:grid-cols-2">
-							<div className="rounded-xl border border-orange-200 bg-white/60 p-4 dark:border-orange-900 dark:bg-orange-950/30">
-								<p className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
-									Nether
+					<section
+						aria-labelledby="results-heading"
+						className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7"
+					>
+						<div className="mb-6 flex items-center justify-between gap-4">
+							<div className="min-w-0">
+								<p className="mb-1 text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
+									Calculated result
 								</p>
-								<div className="mt-3 grid grid-cols-3 gap-3">
-									<div>
-										<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">X</p>
-										<p className="text-2xl font-black tracking-tight text-orange-950 dark:text-orange-100">
-											{shot.landing.x.toFixed(1)}
-										</p>
+								<h2 id="results-heading" className="text-2xl font-black tracking-tight">
+									Landing coordinates
+								</h2>
+							</div>
+							<div className="shrink-0 rounded-xl bg-emerald-100 p-2.5 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+								<Icon name="map" />
+							</div>
+						</div>
+						<div className="mb-5 rounded-2xl bg-orange-50 p-5 dark:bg-orange-950/40">
+							<p className="mb-4 text-sm font-semibold text-orange-700 dark:text-orange-300">Destination coordinates</p>
+							<div className="grid gap-5 sm:grid-cols-3">
+								<div className="min-w-0 rounded-xl border border-orange-200 bg-white/60 p-4 dark:border-orange-900 dark:bg-orange-950/30 sm:col-span-2">
+									<p className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+										Nether
+									</p>
+									<div className="mt-3 grid grid-cols-3 gap-2 lg:gap-1 xl:gap-3">
+										<div className="min-w-0">
+											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">X</p>
+											<p className="text-xl font-black tracking-tight text-orange-950 wrap-anywhere sm:text-2xl lg:text-xl xl:text-2xl dark:text-orange-100">
+												{shot.landing.x.toFixed(1)}
+											</p>
+										</div>
+										<div className="min-w-0">
+											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Y</p>
+											<p className="text-xl font-black tracking-tight text-orange-950 wrap-anywhere sm:text-2xl lg:text-xl xl:text-2xl dark:text-orange-100">128</p>
+										</div>
+										<div className="min-w-0">
+											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Z</p>
+											<p className="text-xl font-black tracking-tight text-orange-950 wrap-anywhere sm:text-2xl lg:text-xl xl:text-2xl dark:text-orange-100">
+												{shot.landing.z.toFixed(1)}
+											</p>
+										</div>
 									</div>
-									<div>
-										<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Y</p>
-										<p className="text-2xl font-black tracking-tight text-orange-950 dark:text-orange-100">128</p>
-									</div>
-									<div>
-										<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Z</p>
-										<p className="text-2xl font-black tracking-tight text-orange-950 dark:text-orange-100">
-											{shot.landing.z.toFixed(1)}
-										</p>
+								</div>
+								<div className="min-w-0 rounded-xl border border-sky-200 bg-white/60 p-4 dark:border-sky-900 dark:bg-sky-950/30 sm:col-span-1">
+									<p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">
+										Overworld · ×8
+									</p>
+									<div className="mt-3 grid grid-cols-2 gap-3">
+										<div className="min-w-0">
+											<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">X</p>
+											<p className="whitespace-nowrap text-lg font-black tracking-tight text-sky-950 sm:text-xl lg:text-lg xl:text-xl dark:text-sky-100">
+												{overworld.x.toFixed(0)}
+											</p>
+										</div>
+										<div className="min-w-0">
+											<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">Z</p>
+											<p className="whitespace-nowrap text-lg font-black tracking-tight text-sky-950 sm:text-xl lg:text-lg xl:text-xl dark:text-sky-100">
+												{overworld.z.toFixed(0)}
+											</p>
+										</div>
 									</div>
 								</div>
 							</div>
-							<div className="rounded-xl border border-sky-200 bg-white/60 p-4 dark:border-sky-900 dark:bg-sky-950/30">
-								<p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">
-									Overworld · ×8
-								</p>
-								<div className="mt-3 grid grid-cols-2 gap-3">
-									<div>
-										<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">X</p>
-										<p className="text-2xl font-black tracking-tight text-sky-950 dark:text-sky-100">
-											{overworld.x.toFixed(0)}
-										</p>
-									</div>
-									<div>
-										<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">Z</p>
-										<p className="text-2xl font-black tracking-tight text-sky-950 dark:text-sky-100">
-											{overworld.z.toFixed(0)}
-										</p>
-									</div>
-								</div>
-							</div>
 						</div>
-					</div>
-					<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+						<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
 						<div className="metric">
 							<Icon name="box" />
 							<span>Control A items</span>
@@ -340,7 +341,8 @@ function App() {
 						<strong className="text-slate-700 dark:text-slate-200">Miss vs target:</strong> {missDistance.toFixed(0)}{' '}
 						blocks · Flight {(shot.ticks / 20).toFixed(1)} s
 					</p>
-				</section>
+					</section>
+				</div>
 			</div>
 		</main>
 	);

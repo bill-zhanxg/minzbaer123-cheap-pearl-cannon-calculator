@@ -69,11 +69,41 @@
     padding: 0.4rem 0.65rem;
     font-size: 0.75rem;
   }
+
+  button.map-control-button {
+    min-width: 2rem;
+    height: 2rem;
+    border: 1px solid transparent;
+    border-radius: 0.625rem;
+    background: transparent;
+    padding: 0 0.5rem;
+    color: var(--color-slate-600);
+    font-size: 0.875rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  button.map-control-button:hover {
+    border-color: var(--color-slate-300);
+    background: white;
+    color: var(--color-orange-700);
+  }
+
+  button.map-control-button:focus-visible {
+    outline: 2px solid var(--color-orange-500);
+    outline-offset: 1px;
+  }
+
+  button.map-fit-button {
+    min-width: 4.5rem;
+    font-size: 0.75rem;
+  }
 }
 
 @layer components {
   .metric {
     display: grid;
+    min-width: 0;
     gap: 0.25rem;
     border: 1px solid var(--color-slate-200);
     border-radius: 1rem;
@@ -88,16 +118,19 @@
   .metric span {
     font-size: 0.75rem;
     font-weight: 600;
+    overflow-wrap: anywhere;
   }
 
   .metric strong {
     color: var(--color-slate-900);
     font-size: 1rem;
+    overflow-wrap: anywhere;
   }
 
   .metric small {
     color: var(--color-slate-400);
     font-size: 0.75rem;
+    overflow-wrap: anywhere;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -117,6 +150,16 @@
     button.secondary:hover,
     button.icon-button:hover {
       background: var(--color-slate-800);
+    }
+
+    button.map-control-button {
+      color: var(--color-slate-300);
+    }
+
+    button.map-control-button:hover {
+      border-color: var(--color-slate-600);
+      background: var(--color-slate-700);
+      color: var(--color-orange-300);
     }
 
     .metric {
