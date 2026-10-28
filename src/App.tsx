@@ -250,19 +250,19 @@ function App() {
 										Nether
 									</p>
 									<div className="mt-3 grid grid-cols-3 gap-2 lg:gap-1 xl:gap-3">
-										<div className="min-w-0">
+										<div className="coordinate-cell min-w-0">
 											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">X</p>
-											<p className="text-xl font-black tracking-tight text-orange-950 wrap-anywhere sm:text-2xl lg:text-xl xl:text-2xl dark:text-orange-100">
+											<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">
 												{shot.landing.x.toFixed(1)}
 											</p>
 										</div>
-										<div className="min-w-0">
+										<div className="coordinate-cell min-w-0">
 											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Y</p>
-											<p className="text-xl font-black tracking-tight text-orange-950 wrap-anywhere sm:text-2xl lg:text-xl xl:text-2xl dark:text-orange-100">128</p>
+											<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">128</p>
 										</div>
-										<div className="min-w-0">
+										<div className="coordinate-cell min-w-0">
 											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Z</p>
-											<p className="text-xl font-black tracking-tight text-orange-950 wrap-anywhere sm:text-2xl lg:text-xl xl:text-2xl dark:text-orange-100">
+											<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">
 												{shot.landing.z.toFixed(1)}
 											</p>
 										</div>
@@ -272,16 +272,16 @@ function App() {
 									<p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">
 										Overworld · ×8
 									</p>
-									<div className="mt-3 grid grid-cols-2 gap-3">
-										<div className="min-w-0">
+									<div className="mt-3 grid grid-cols-2 gap-2 lg:gap-1 xl:gap-3">
+										<div className="coordinate-cell min-w-0">
 											<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">X</p>
-											<p className="whitespace-nowrap text-lg font-black tracking-tight text-sky-950 sm:text-xl lg:text-lg xl:text-xl dark:text-sky-100">
+											<p className="coordinate-value font-black tracking-tight text-sky-950 dark:text-sky-100">
 												{overworld.x.toFixed(0)}
 											</p>
 										</div>
-										<div className="min-w-0">
+										<div className="coordinate-cell min-w-0">
 											<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">Z</p>
-											<p className="whitespace-nowrap text-lg font-black tracking-tight text-sky-950 sm:text-xl lg:text-lg xl:text-xl dark:text-sky-100">
+											<p className="coordinate-value font-black tracking-tight text-sky-950 dark:text-sky-100">
 												{overworld.z.toFixed(0)}
 											</p>
 										</div>

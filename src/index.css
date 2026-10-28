@@ -111,6 +111,19 @@
     color: var(--color-slate-500);
   }
 
+  .coordinate-cell {
+    container-type: inline-size;
+  }
+
+  .coordinate-value {
+    margin: 0;
+    overflow: hidden;
+    font-size: clamp(0.75rem, 18cqw, 1.5rem);
+    line-height: 1.15;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+
   .metric svg {
     color: var(--color-orange-600);
   }
