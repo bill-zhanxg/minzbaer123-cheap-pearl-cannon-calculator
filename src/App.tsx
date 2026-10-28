@@ -1,7 +1,8 @@
 import { useMemo, useState, type ReactNode } from 'react';
 
-import { MAX_ITEMS, calculateMissDistance, calculateOverworld, calculateShot, solveTarget, type Origin } from './calc';
+import { MAX_ITEMS, calculateMissDistance, calculateOverworld, calculateShot, solveTarget, type Origin, type Point } from './calc';
 import { Icon, type IconName } from './components/Icon';
+import { LandingMap } from './components/LandingMap';
 
 const DEFAULT_ORIGIN: Origin = { x: 8.49, z: 15.64, direction: 0 };
 
@@ -78,10 +79,17 @@ function App() {
 	const aItems = formatItems(aValue);
 	const bItems = formatItems(bValue);
 
-	const solve = () => {
-		const solution = solveTarget(target, origin);
+	const aimAt = (point: Point) => {
+		setTargetX(String(point.x.toFixed(1)));
+		setTargetZ(String(point.z.toFixed(1)));
+		const solution = solveTarget(point, origin);
+		if (solution.behindCannon) return;
 		setA(String(solution.a));
 		setB(String(solution.b));
+	};
+
+	const solve = () => {
+		aimAt(target);
 	};
 
 	const reset = () => {
@@ -202,6 +210,18 @@ function App() {
 							</div>
 						</div>
 					</div>
+				</section>
+
+				<section className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
+					<LandingMap
+						a={aValue}
+						b={bValue}
+						origin={origin}
+						shot={shot}
+						target={target}
+						onAim={aimAt}
+						onSteer={(nextA) => setA(String(nextA))}
+					/>
 				</section>
 
 				<section
