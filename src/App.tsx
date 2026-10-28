@@ -212,7 +212,7 @@ function App() {
 					</div>
 				</section>
 
-				<div className="grid items-start gap-6 lg:grid-cols-2">
+				<div className="grid items-start gap-6 lg:items-stretch lg:grid-cols-2">
 					<section className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
 						<LandingMap
 							a={aValue}

@@ -464,7 +464,7 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 	const overlayTop = overlay ? Math.max(12, overlay.screenY - 86) : 0;
 
 	return (
-		<div className="grid gap-3">
+		<div className="grid gap-3 lg:flex lg:h-full lg:flex-col">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
 					<p className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
@@ -504,7 +504,7 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 			</div>
 			<div
 				ref={wrapRef}
-				className="relative mx-auto w-full max-w-[640px] overflow-hidden rounded-2xl border border-slate-200 bg-white [--map-bg:#ffffff] [--map-blue:#0284c7] [--map-fg:#0f172a] [--map-grid:#e2e8f0] [--map-muted:#64748b] [--map-orange:#ea580c] dark:border-slate-700 dark:bg-slate-900 dark:[--map-bg:#0f172a] dark:[--map-blue:#38bdf8] dark:[--map-fg:#f8fafc] dark:[--map-grid:#1e293b] dark:[--map-muted:#94a3b8] dark:[--map-orange:#fb923c]"
+				className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white lg:min-h-0 lg:flex-1 [--map-bg:#ffffff] [--map-blue:#0284c7] [--map-fg:#0f172a] [--map-grid:#e2e8f0] [--map-muted:#64748b] [--map-orange:#ea580c] dark:border-slate-700 dark:bg-slate-900 dark:[--map-bg:#0f172a] dark:[--map-blue:#38bdf8] dark:[--map-fg:#f8fafc] dark:[--map-grid:#1e293b] dark:[--map-muted:#94a3b8] dark:[--map-orange:#fb923c]"
 			>
 				<canvas
 					ref={canvasRef}
@@ -539,11 +539,11 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 						</p>
 					</div>
 				)}
-				<div className="pointer-events-none absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300 sm:gap-2 sm:text-[11px]">
-					<span className="rounded-full bg-white/90 px-2 py-1 shadow-sm dark:bg-slate-800/90">Orange path · shot</span>
-					<span className="rounded-full bg-white/90 px-2 py-1 shadow-sm dark:bg-slate-800/90">Blue fan · reachable A</span>
-					<span className="rounded-full bg-white/90 px-2 py-1 shadow-sm dark:bg-slate-800/90">Rings · measured</span>
-				</div>
+			</div>
+			<div className="flex flex-wrap gap-x-3 gap-y-1 px-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300 sm:text-[11px]">
+				<span>Orange path · shot</span>
+				<span>Blue fan · reachable A</span>
+				<span>Rings · measured</span>
 			</div>
 		</div>
 	);
