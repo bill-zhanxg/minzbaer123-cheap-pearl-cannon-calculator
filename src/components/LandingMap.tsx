@@ -7,7 +7,6 @@ import {
 	calculateRelativeCoordinates,
 	clampA,
 	createFan,
-	solveTarget,
 	type Origin,
 	type Point,
 	type Shot,
@@ -217,6 +216,7 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 		niceTicks(left, right, 6).forEach((value) => {
 			const x = toScreen({ x: value, z: 0 }).x;
 			context.strokeStyle = color('--map-grid');
+			context.globalAlpha = 0.9;
 			context.beginPath();
 			context.moveTo(x, 0);
 			context.lineTo(x, size.height);
@@ -234,6 +234,7 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 			context.fillStyle = color('--map-muted');
 			context.fillText(formatWorld(value), 6, y - 5);
 		});
+		context.globalAlpha = 1;
 
 		const originScreen = toScreen(origin);
 		const landingScreen = toScreen(shot.landing);
@@ -357,7 +358,9 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 				aimed,
 				screenX,
 				screenY,
-				kind === 'path' ? 'Predicted path' : kind === 'landing' ? 'Landing' : 'Target',
+				kind === 'path' ? 'Predicted path'
+				: kind === 'landing' ? 'Landing'
+				: 'Target',
 			),
 		);
 	};
@@ -390,15 +393,11 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 			const kind = hitKind(x, y, viewRef.current, size, origin, shot.landing, target, fanWorldPoints(origin, b));
 			setCursor(cursorFor(kind, false));
 			setHint(
-				kind === 'landing'
-					? 'Drag landing to pick a new destination. A and B update as you move.'
-					: kind === 'target'
-						? 'Drag the target ring to aim. Coordinates and distance stay on screen.'
-						: kind === 'path'
-							? 'Drag the orange path to change range while keeping this heading.'
-							: kind === 'fan'
-								? 'Drag the blue fan to steer with A, without changing B.'
-								: 'Drag the map to pan. Hold Ctrl and scroll to zoom.',
+				kind === 'landing' ? 'Drag landing to pick a new destination. A and B update as you move.'
+				: kind === 'target' ? 'Drag the target ring to aim. Coordinates and distance stay on screen.'
+				: kind === 'path' ? 'Drag the orange path to change range while keeping this heading.'
+				: kind === 'fan' ? 'Drag the blue fan to steer with A, without changing B.'
+				: 'Drag the map to pan. Hold Ctrl and scroll to zoom.',
 			);
 			return;
 		}
@@ -451,10 +450,10 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 		<div className="grid gap-3 lg:flex lg:h-full lg:flex-col">
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
-					<p className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
-						Shot map
+					<p className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">Shot map</p>
+					<p className="h-10 max-w-prose overflow-hidden text-sm leading-5 text-slate-500 dark:text-slate-400">
+						{hint}
 					</p>
-					<p className="text-sm text-slate-500 dark:text-slate-400">{hint}</p>
 				</div>
 				<div className="map-controls flex flex-wrap gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-800">
 					<button
@@ -488,7 +487,7 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 			</div>
 			<div
 				ref={wrapRef}
-				className="relative min-h-72 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white lg:min-h-0 lg:flex-1 [--map-bg:#ffffff] [--map-blue:#0284c7] [--map-fg:#0f172a] [--map-grid:#e2e8f0] [--map-muted:#64748b] [--map-orange:#ea580c] dark:border-slate-700 dark:bg-slate-900 dark:[--map-bg:#0f172a] dark:[--map-blue:#38bdf8] dark:[--map-fg:#f8fafc] dark:[--map-grid:#1e293b] dark:[--map-muted:#94a3b8] dark:[--map-orange:#fb923c]"
+				className="relative min-h-72 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white lg:min-h-0 lg:flex-1 [--map-bg:#ffffff] [--map-blue:#0284c7] [--map-fg:#0f172a] [--map-grid:#cbd5e1] [--map-muted:#64748b] [--map-orange:#ea580c] dark:border-slate-700 dark:bg-slate-900 dark:[--map-bg:#0f172a] dark:[--map-blue:#38bdf8] dark:[--map-fg:#f8fafc] dark:[--map-grid:#475569] dark:[--map-muted:#94a3b8] dark:[--map-orange:#fb923c]"
 			>
 				<canvas
 					ref={canvasRef}
@@ -512,21 +511,24 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 						</p>
 						<p className="mt-1 font-mono text-sm font-semibold text-slate-900 dark:text-slate-100">
 							X {formatCoord(overlay.x)}
-							<span className="mx-1 text-slate-400">·</span>
-							Z {formatCoord(overlay.z)}
+							<span className="mx-1 text-slate-400">·</span>Z {formatCoord(overlay.z)}
 						</p>
 						<p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
 							{overlay.distance.toFixed(0)} blocks from cannon
 						</p>
-						<p className="text-xs text-slate-500 dark:text-slate-400">
-							Miss {overlay.miss.toFixed(0)} blocks
-						</p>
+						<p className="text-xs text-slate-500 dark:text-slate-400">Miss {overlay.miss.toFixed(0)} blocks</p>
 					</div>
 				)}
 			</div>
-			<div className="flex flex-wrap gap-x-3 gap-y-1 px-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300 sm:text-[11px]">
-				<span>Orange path · shot</span>
-				<span>Blue fan · reachable A</span>
+			<div className="flex flex-wrap gap-2 px-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400 sm:text-[11px]">
+				<span className="inline-flex items-center gap-1.5 rounded-md border border-orange-200/80 px-2 py-1 dark:border-orange-900/80">
+					<span className="h-1.5 w-1.5 rounded-full bg-orange-500/80 dark:bg-orange-400/80" />
+					Orange path · shot
+				</span>
+				<span className="inline-flex items-center gap-1.5 rounded-md border border-sky-200/80 px-2 py-1 dark:border-sky-900/80">
+					<span className="h-1.5 w-1.5 rounded-full bg-sky-500/80 dark:bg-sky-400/80" />
+					Blue fan · reachable A
+				</span>
 			</div>
 		</div>
 	);
