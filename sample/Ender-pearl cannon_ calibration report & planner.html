@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ender-pearl cannon: calibration report &amp; planner</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#fafaf7;--fg:#1c1c1a;--mut:#6b6b66;--bd:#dcdcd4;--card:#fff;--a1:#c2410c;--a2:#1d6fa5}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#ecece6;--mut:#a0a09a;--bd:#3a3a36;--card:#20201e;--a1:#fb923c;--a2:#60a5fa}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#ecece6;--mut:#a0a09a;--bd:#3a3a36;--card:#20201e;--a1:#fb923c;--a2:#60a5fa}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin:1.8em 0 .5em;border-bottom:1px solid var(--bd);padding-bottom:4px}
+.mut{color:var(--mut);font-size:.9rem}li{margin:.35em 0}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:8px 0}
+label{font-size:.8rem;color:var(--mut);display:block}
+input{width:100%;box-sizing:border-box;font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--fg)}
+button{font:inherit;padding:7px 12px;border:1px solid var(--a1);background:var(--a1);color:#fff;border-radius:6px;cursor:pointer;align-self:end}
+#map{width:100%;max-width:640px;aspect-ratio:1;display:block;border:1px solid var(--bd);border-radius:8px;margin-top:8px}
+#out{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;font-size:.92rem;margin-top:8px}
+code,pre{font:.85rem ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;overflow-x:auto;line-height:1.5}
+.sc{overflow-x:auto}table{border-collapse:collapse;font-size:.8rem;width:100%;min-width:640px}
+td,th{border-bottom:1px solid var(--bd);padding:3px 6px;text-align:right}th{color:var(--mut);font-weight:600}
+.g{stroke:var(--bd);stroke-width:1}.t{font:11px system-ui,sans-serif;fill:var(--mut)}
+.warn{color:var(--a1)}
+</style></head><body><main>
+<h1>Ender-pearl cannon: calibration report &amp; planner</h1>
+<p class="mut">14 successful shots · origin (8.49, y241, 15.64) in the Nether · facing north (−z) · pearls land on the roof at y=128</p>
+
+<h2>Summary</h2>
+<ul>
+<li><b>The controls are the other way round from your notes.</b> North–south range depends <i>only</i> on B: B=64 landed at z −5908.87 in four shots (A=1, 10, 64, 128) and B=32 at −2690.13 twice. A only slides the landing sideways (east–west).</li>
+<li><b>A is linear steering.</b> At B=64 each A item moves the landing 144.14 blocks sideways. Straight north is A=(B+1)/2. A is capped at B+1: extra items are ignored and the dropper drains min(A, B+2).</li>
+<li><b>The fan is ±38.3°, not 180°.</b> tan θ = 0.7906·(2A−n)/n with n=B+1. It is mirror-symmetric (B=64: A=1 → −4533, A=65 → +4693) but never wider at any B. Each TNT behaves like a push 38.3° off north.</li>
+<li><b>Range:</b> the pearl leaves at a speed proportional to n, about 2.4° upward, then follows normal pearl physics (drag 0.99, gravity 0.03) down 113 blocks to y=128. Range per TNT climbs from 69 to 104 blocks and saturates because drag caps horizontal reach near 100× launch speed. Above B≈200 it is simply ≈104 blocks per TNT.</li>
+<li><b>Loading time</b> = 6.6 s + 0.3 s × (B+1), matching your measured 0.300 s per dupe, independent of A.</li>
+<li><b>Waiting time</b> is mostly the pearl crossing new chunks and is only roughly predictable (±25 s). 2 of 4 attempts at B≥384 failed and only worked on retry; B=1 failed.</li>
+</ul>
+<p class="mut">Model accuracy on landing spot: <span id="err"></span> The yaw/pitch numbers in your tp commands are your camera, not the pearl, so I ignored them. Nether ×8 = overworld coordinates.</p>
+
+<h2>Planner</h2>
+<div class="row">
+<div><label>Origin X</label><input id="ox" type="number" value="8.49" step="any"></div>
+<div><label>Origin Z</label><input id="oz" type="number" value="15.64" step="any"></div>
+<div><label>Facing ° (0=N, 90=E)</label><input id="yw" type="number" value="0" step="any"></div>
+<div><label>Control A items</label><input id="A" type="number" value="40" min="0" step="1"></div>
+<div><label>Control B items</label><input id="B" type="number" value="64" min="1" step="1"></div>
+</div>
+<div class="row">
+<div><label>Target X (optional)</label><input id="tx" type="number" value="-2000" step="any"></div>
+<div><label>Target Z</label><input id="tz" type="number" value="-6000" step="any"></div>
+<button id="sv">Solve A &amp; B</button>
+</div>
+<div id="sm" class="mut"></div>
+<canvas id="map"></canvas>
+<p class="mut">North is up. Orange = current shot; blue fan = every landing reachable at this B (A from 0 to B+1); hollow dots = your 14 measured shots.</p>
+<div id="out"></div>
+
+<h2>Model vs measured</h2>
+<div class="sc"><table><thead><tr><th>A<th>B<th>meas X<th>meas Z<th>pred X<th>pred Z<th>miss<th>load meas/pred s<th>wait meas/pred s</tr></thead><tbody id="tb"></tbody></table></div>
+<p class="mut">The A=128 shot waited only 40 s (vs 65 s for A=64) because it flew almost the same path as an earlier shot whose chunks were already generated, so treat predicted waits as an upper bound for fresh routes.</p>
+
+<h2>Graphs</h2>
+<p><b>Range per TNT vs B.</b> Rises then saturates at ≈104 blocks/TNT.</p><div id="c1"></div>
+<p><b>Sideways offset vs A</b> (facing north, +X = east). Straight lines; the flat end is the B+1 cap.</p><div id="c2"></div>
+<p><b>Loading (L) and waiting (W) time vs B</b> (seconds, dots = measured, lines = model).</p><div id="c3"></div>
+
+<h2>Formulas</h2>
+<pre>n  = B + 1                              A' = min(A, n)
+launch (blocks/tick): forward 1.0416·n, sideways 1.0416·0.7906·(2A' − n), up 0.043·n
+each tick: pos += v;  v_horizontal *= 0.99;  v_y = 0.99·v_y − 0.03   (falls 113 blocks, 241 → 128)
+flight time T solves   100·(0.043n + 3)·(1 − 0.99^T) − 3T = −113 ;   F = 1 − 0.99^T
+forward range  Z = 100 · 1.0416 · n · F            (≈ 104.2·n once B &gt; 200)
+sideways       X = k · (A' − n/2),  k = 2·100·1.0416·0.7906·F ≈ 164.7·F blocks per A item
+world = origin + Z·forward + X·right       (facing north: forward = (0,−1), right = (+1,0))
+angle from north = atan(0.7906·(2A' − n)/n)    max ±38.3°
+inverse: solve Z(B) = forward distance, then A' = n/2 + X/k
+loading  L ≈ 6.6 + 0.3·n  s
+waiting  W ≈ L + max(0, 0.5·√D − 15)  s,  D = √(Z²+X²)     (rough, ±25 s)</pre>
+
+<h2>What to test next</h2>
+<ul>
+<li>A=0 and A=B+1 at B=10 or 20: confirms the mirrored ±38.3° limits and whether A=0 works.</li>
+<li>A well above B+1 at small B (e.g. A=30, B=5): confirms the cap and the B+2 drain.</li>
+<li>B=1 to 8, one shot each: checks the "+1" (n=B+1) and finds the smallest working B. Also repeat B=64, A=33 twice to see if shots are deterministic.</li>
+<li>B≈100 and B≈200, plus a mid A at B=256+: fills the curve where range per TNT is still rising.</li>
+<li>For timing, log three times per shot: TNT finished loading, you stepped in, you teleported. Use fresh directions, since re-used chunks are faster.</li>
+<li>If you really need 180°, the current build cannot do it; check what stops A beyond B+1 (the direction limit) and rebuild that part.</li>
+</ul>
+</main>
+<script>
+const $=id=>document.getElementById(id),C=1.0416,TP=0.7906,E=0.043,H=113,O={x:8.49,z:15.64};
+const D=[[3,3,8,8,117.64,-261.45],[10,3,8,8,227.27,-261.45],[10,20,15,20,-53.15,-1608.23],[10,64,27,65,-3235.24,-5908.87],[10,32,18,32,-834.88,-2690.13],[10,256,84,205,-19384.78,-26580.01],[64,10,12,10,642.71,-786.85],[64,64,26,65,4548.53,-5908.87],[128,64,26,40,4692.67,-5908.87],[64,384,122,227,-21136.37,-40044.22],[64,576,180,306,-36967.69,-60078.72],[1,64,26,61,-4532.53,-5908.87],[64,128,45,87,-70.70,-12824.42],[64,32,16,19,2147.62,-2690.13]];
+const fmt=v=>Math.abs(v)>=10000?(v/1000).toFixed(0)+'k':Math.abs(v)>=1000?+(v/1000).toFixed(1)+'k':String(+v.toFixed(1));
+function ticks(a,b,n){const s=(b-a)/n,p=Math.pow(10,Math.floor(Math.log10(s))),u=[1,2,5,10].map(k=>k*p).find(k=>k>=s),t=[];for(let v=Math.ceil(a/u)*u;v<=b+1e-9;v+=u)t.push(+v.toFixed(6));return t}
+function fl(B){const n=B+1,vy=E*n;let lo=0,hi=6000;for(let i=0;i<60;i++){const T=(lo+hi)/2,F=1-Math.pow(.99,T);if(100*(vy+3)*F-3*T+H>0)lo=T;else hi=T}return{T:lo,F:1-Math.pow(.99,lo)}}
+function pred(A,B){const n=B+1,Ae=Math.min(A,n),{T,F}=fl(B);return{n,Ae,T,F,f:100*C*n*F,r:100*C*F*TP*(2*Ae-n),k:200*C*F*TP}}
+const toW=(f,r,ox,oz,yw)=>{const a=yw*Math.PI/180,s=Math.sin(a),c=Math.cos(a);return[ox+f*s+r*c,oz-f*c+r*s]};
+const tim=(f,r,n)=>{const L=6.6+.3*n;return{L,W:L+Math.max(0,.5*Math.sqrt(Math.hypot(f,r))-15)}};
+// table
+let errs=[];
+$('tb').innerHTML=D.map(d=>{const p=pred(d[0],d[1]),[X,Z]=toW(p.f,p.r,O.x,O.z,0),e=Math.hypot(X-d[4],Z-d[5]),t=tim(p.f,p.r,p.n);errs.push(e/Math.hypot(d[4]-O.x,d[5]-O.z)*100);return`<tr><td>${d[0]}<td>${d[1]}<td>${d[4]}<td>${d[5]}<td>${X.toFixed(0)}<td>${Z.toFixed(0)}<td>${e.toFixed(0)}<td>${d[2]} / ${t.L.toFixed(0)}<td>${d[3]} / ${t.W.toFixed(0)}`}).join('');
+errs.sort((a,b)=>a-b);$('err').textContent=`median miss ${errs[7].toFixed(2)}% of distance, worst ${errs[13].toFixed(2)}% (fitted to these same shots, so test it on new ones).`;
+// charts
+function plot(id,ss,o){const W=560,Hh=290,l=56,r=12,t=10,b=38,lx=o.lx?Math.log10:v=>v,P=ss.flatMap(s=>s.p);
+let x0=Math.min(...P.map(p=>lx(p[0]))),x1=Math.max(...P.map(p=>lx(p[0]))),y0=Math.min(...P.map(p=>p[1])),y1=Math.max(...P.map(p=>p[1]));
+if(o.lx){x0=Math.floor(x0);x1=Math.ceil(x1)}const dy=(y1-y0)*.08;y0-=dy;y1+=dy;
+const X=x=>l+(lx(x)-x0)/(x1-x0)*(W-l-r),Y=y=>Hh-b-(y-y0)/(y1-y0)*(Hh-t-b);
+let s=`<svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto">`;
+(o.lx?Array.from({length:x1-x0+1},(_,i)=>Math.pow(10,x0+i)):ticks(x0,x1,6)).forEach(v=>s+=`<line class="g" x1="${X(v)}" x2="${X(v)}" y1="${t}" y2="${Hh-b}"/><text class="t" x="${X(v)}" y="${Hh-b+14}" text-anchor="middle">${fmt(v)}</text>`);
+ticks(y0,y1,5).forEach(v=>s+=`<line class="g" x1="${l}" x2="${W-r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="t" x="${l-5}" y="${Y(v)+4}" text-anchor="end">${fmt(v)}</text>`);
+ss.forEach(q=>{if(q.line)s+=`<polyline fill="none" stroke-width="2" style="stroke:var(${q.c})" points="${q.p.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}"/>`;else q.p.forEach(p=>s+=`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="4" style="fill:var(${q.c});fill-opacity:.85"/>`)});
+ss.filter(q=>q.n).forEach((q,i)=>s+=`<text class="t" x="${l+8}" y="${t+14+i*14}" style="fill:var(${q.c})">${q.n}</text>`);
+s+=`<text class="t" x="${W/2}" y="${Hh-4}" text-anchor="middle">${o.xl}</text><text class="t" transform="rotate(-90)" x="${-Hh/2}" y="12" text-anchor="middle">${o.yl}</text></svg>`;$(id).innerHTML=s}
+const M=D.map(d=>({A:d[0],B:d[1],L:d[2],W:d[3],x:d[4]-O.x,z:O.z-d[5]})),lg=Array.from({length:41},(_,i)=>Math.pow(10,i*3/40));
+plot('c1',[{p:M.map(m=>[m.B,m.z/(m.B+1)]),c:'--a1',n:'measured'},{p:lg.map(B=>[B,pred(0,B).f/(B+1)]),c:'--a2',line:1,n:'model'}],{lx:1,xl:'B (items)',yl:'blocks per TNT (Z / (B+1))'});
+plot('c2',[{p:M.filter(m=>m.B==64).map(m=>[Math.min(m.A,65),m.x]),c:'--a1',n:'B=64 measured'},{p:[0,65].map(a=>[a,pred(a,64).r]),c:'--a1',line:1},{p:M.filter(m=>m.B==32).map(m=>[Math.min(m.A,33),m.x]),c:'--a2',n:'B=32 measured'},{p:[0,33].map(a=>[a,pred(a,32).r]),c:'--a2',line:1}],{xl:'effective A = min(A, B+1)',yl:'sideways offset (blocks)'});
+const mw=B=>{const p=pred((B+1)/2,B);return tim(p.f,p.r,p.n)};
+plot('c3',[{p:M.map(m=>[m.B,m.L]),c:'--a1',n:'load measured'},{p:lg.map(B=>[B,mw(B).L]),c:'--a1',line:1},{p:M.map(m=>[m.B,m.W]),c:'--a2',n:'wait measured'},{p:lg.map(B=>[B,mw(B).W]),c:'--a2',line:1}],{lx:1,xl:'B (items)',yl:'seconds'});
+// planner
+let tg=null;
+function draw(){const ox=+$('ox').value,oz=+$('oz').value,yw=+$('yw').value,A=Math.max(0,Math.round(+$('A').value)),B=Math.min(1400,Math.max(1,Math.round(+$('B').value)));
+const p=pred(A,B),[X,Z]=toW(p.f,p.r,ox,oz,yw),t=tim(p.f,p.r,p.n),d=Math.hypot(p.f,p.r);
+const st=Math.max(1,Math.floor(p.n/80)),fan=[];for(let a=0;a<=p.n;a+=st)fan.push(a);if(fan[fan.length-1]!==p.n)fan.push(p.n);
+const fp=fan.map(a=>{const q=pred(a,B);return toW(q.f,q.r,ox,oz,yw)});
+const pts=[[ox,oz],[X,Z],...fp];if(tg)pts.push(tg);
+const xs=pts.map(q=>q[0]),zs=pts.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),z0=Math.min(...zs),z1=Math.max(...zs),cx=(x0+x1)/2,cz=(z0+z1)/2,span=Math.max(x1-x0,z1-z0,50)*1.2;
+const cv=$('map'),dp=devicePixelRatio||1,w=cv.clientWidth;cv.width=cv.height=w*dp;const g=cv.getContext('2d');g.setTransform(dp,0,0,dp,0,0);
+const cs=getComputedStyle(document.documentElement),col=n=>cs.getPropertyValue(n).trim(),sc=w/span,sx=x=>(x-cx)*sc+w/2,sy=z=>(z-cz)*sc+w/2;
+g.fillStyle=col('--card');g.fillRect(0,0,w,w);g.font='11px sans-serif';g.lineWidth=1;
+ticks(cx-span/2,cx+span/2,6).forEach(v=>{g.strokeStyle=col('--bd');g.beginPath();g.moveTo(sx(v),0);g.lineTo(sx(v),w);g.stroke();g.fillStyle=col('--mut');g.fillText(fmt(v),sx(v)+3,w-4)});
+ticks(cz-span/2,cz+span/2,6).forEach(v=>{g.strokeStyle=col('--bd');g.beginPath();g.moveTo(0,sy(v));g.lineTo(w,sy(v));g.stroke();g.fillStyle=col('--mut');g.fillText(fmt(v),4,sy(v)-3)});
+g.strokeStyle=col('--mut');D.forEach(m=>{g.beginPath();g.arc(sx(m[4]),sy(m[5]),3,0,7);g.stroke()});
+g.strokeStyle=col('--a2');g.lineWidth=2;g.globalAlpha=.7;g.beginPath();fp.forEach((q,i)=>i?g.lineTo(sx(q[0]),sy(q[1])):g.moveTo(sx(q[0]),sy(q[1])));g.stroke();
+g.setLineDash([5,4]);g.lineWidth=1;[fp[0],fp[fp.length-1]].forEach(q=>{g.beginPath();g.moveTo(sx(ox),sy(oz));g.lineTo(sx(q[0]),sy(q[1]));g.stroke()});g.setLineDash([]);g.globalAlpha=1;
+g.strokeStyle=col('--a1');g.fillStyle=col('--a1');g.lineWidth=2;g.beginPath();g.moveTo(sx(ox),sy(oz));g.lineTo(sx(X),sy(Z));g.stroke();
+g.beginPath();g.arc(sx(X),sy(Z),6,0,7);g.fill();g.fillRect(sx(ox)-4,sy(oz)-4,8,8);
+if(tg){const a=sx(tg[0]),b=sy(tg[1]);g.strokeStyle=col('--fg');g.beginPath();g.moveTo(a-6,b-6);g.lineTo(a+6,b+6);g.moveTo(a+6,b-6);g.lineTo(a-6,b+6);g.stroke()}
+g.fillStyle=col('--fg');g.font='bold 13px sans-serif';g.fillText('N ↑',w-36,20);
+const brg=(Math.atan2(X-ox,-(Z-oz))*180/Math.PI+360)%360,wn=[];
+if(A>p.n)wn.push(`A above B+1 is ignored (only ${p.n} used).`);if(B<2)wn.push('B=1 failed in testing.');if(B>=384)wn.push('Long flight: 2 of 4 tests at B≥384 failed.');
+$('out').innerHTML=`<b>Landing:</b> X ${X.toFixed(1)}, Z ${Z.toFixed(1)} (y=128) · ${(d).toFixed(0)} blocks away · bearing ${brg.toFixed(1)}° · overworld ≈ ${(X*8).toFixed(0)}, ${(Z*8).toFixed(0)}<br><b>Timing:</b> load ≈ ${t.L.toFixed(0)} s, total wait ≈ ${t.W.toFixed(0)} s (±25), flight physics ≈ ${(p.T/20).toFixed(1)} s<br><b>Items:</b> A drains ${Math.min(A,B+2)} · one A item moves the landing ${p.k.toFixed(1)} blocks sideways · one B item ≈ ${(p.f/p.n).toFixed(0)} blocks forward`+(tg?`<br><b>Miss vs target:</b> ${Math.hypot(X-tg[0],Z-tg[1]).toFixed(0)} blocks`:'')+`<br><code>/execute in minecraft:the_nether run tp @s ${X.toFixed(2)} 128 ${Z.toFixed(2)}</code>`+(wn.length?`<br><span class="warn">${wn.join(' ')}</span>`:'')}
+function solve(){const ox=+$('ox').value,oz=+$('oz').value,a=+$('yw').value*Math.PI/180,tx=+$('tx').value,tz=+$('tz').value;tg=[tx,tz];
+const dx=tx-ox,dz=tz-oz,f=dx*Math.sin(a)-dz*Math.cos(a),r=dx*Math.cos(a)+dz*Math.sin(a);
+if(f<=0){$('sm').textContent='Target is behind the cannon: it only fires forward.';draw();return}
+let lo=1,hi=1400;for(let i=0;i<50;i++){const m=(lo+hi)/2;pred(0,m).f<f?lo=m:hi=m}
+const B=Math.max(1,Math.round(lo)),q=pred(0,B);let A=Math.round(q.n/2+r/q.k),m='';
+if(A<0||A>q.n){m=' Target is outside the ±38.3° fan, so A is clamped; rotate the cannon.';A=Math.min(q.n,Math.max(0,A))}
+$('A').value=A;$('B').value=B;$('sm').textContent=`Best settings: A=${A}, B=${B}. Steps are about ${(q.f/q.n).toFixed(0)} blocks per B and ${q.k.toFixed(0)} per A, so expect a miss of tens of blocks.`+m;draw()}
+['ox','oz','yw','A','B'].forEach(i=>$(i).addEventListener('input',draw));$('sv').onclick=solve;
+addEventListener('resize',draw);matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);draw();
+</script></body></html>

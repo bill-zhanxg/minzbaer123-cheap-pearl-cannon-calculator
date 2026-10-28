@@ -1,0 +1,79 @@
+Act as a senior full-stack web developer and data scientist. Build a single-page, modern web application (HTML/CSS/JS or React/Tailwind/Chart.js) for a custom Minecraft Nether Ender Pearl Cannon Calculator and Technical Dashboard.
+
+### 1. BACKGROUND & CANNON MECHANICS
+- Cannon Type: 180° Lazy-Accelerated Ender Pearl Cannon built on the Nether Roof.
+- Launch Coordinates (Origin): X = 8.49, Y = 241.00, Z = 15.64.
+- Facing Direction: Facing North (Negative Z axis).
+- Controls:
+  - Control A (Dropper count): Pushes the pearl East (Positive X) to steer and correct direction.
+  - Control B (Dropper count): Drives main forward thrust North (Negative Z) and introduces inherent Westward (Negative X) drift.
+- Hardware Constraint:
+  - The redstone circuit caps Control A based on B: A_effective = min(A_set, B_set + 2).
+  - Any items in A above (B + 2) remain un-dispensed in the dropper.
+- Y-Level Behavior:
+  - Pearls land at Y = ~128.00 (or ~128.61) because they collide with the Nether bedrock ceiling on their downward trajectory.
+- TNT Duplication Speed:
+  - 1 TNT dupes every 9 frames at 30 FPS = 0.300 seconds per TNT dupe.
+
+### 2. EMPIRICAL DATASET
+Use this complete dataset for training/fitting regression models or verification:
+1. A=3, B=3 | t_load=8s, t_wait=8s | TP: (117.64, 128.00, -261.45) | A_effective=3
+2. A=10, B=3 | t_load=8s, t_wait=8s | TP: (227.27, 128.00, -261.45) | A_effective=4 (6 left)
+3. A=10, B=20 | t_load=15s, t_wait=20s | TP: (-53.15, 128.00, -1608.23) | A_effective=10
+4. A=10, B=32 | t_load=18s, t_wait=32s | TP: (-834.88, 128.00, -2690.13) | A_effective=10
+5. A=10, B=64 | t_load=27s, t_wait=65s | TP: (-3235.24, 128.00, -5908.87) | A_effective=10
+6. A=10, B=256 | t_load=84s, t_wait=205s | TP: (-19384.78, 128.00, -26580.01) | A_effective=10
+7. A=64, B=10 | t_load=12s, t_wait=10s | TP: (642.71, 128.00, -786.85) | A_effective=12 (52 left)
+8. A=64, B=32 | t_load=16s, t_wait=19s | TP: (2147.62, 128.00, -2690.13) | A_effective=34 (30 left)
+9. A=64, B=64 | t_load=26s, t_wait=65s | TP: (4548.53, 128.00, -5908.87) | A_effective=64
+10. A=128, B=64 | t_load=26s, t_wait=40s | TP: (4692.67, 128.00, -5908.87) | A_effective=66 (62 left)
+11. A=1, B=64 | t_load=26s, t_wait=61s | TP: (-4532.53, 128.00, -5908.87) | A_effective=1
+12. A=64, B=128 | t_load=45s, t_wait=87s | TP: (-70.70, 128.61, -12824.42) | A_effective=64
+13. A=64, B=384 | t_load=122s, t_wait=227s | TP: (-21136.37, 128.00, -40044.22) | A_effective=64
+14. A=64, B=576 | t_load=180s, t_wait=306s | TP: (-36967.69, 128.00, -60078.72) | A_effective=64
+
+### 3. MATHEMATICAL FORMULAS
+- Delta Z (Forward Thrust): ΔZ = -105.26 * B + 519.24
+- Delta X (Lateral Steering): ΔX = 152.17 * A_effective - 80.85 * B + 12.89
+- Target Z: Z_landing = 15.64 + ΔZ
+- Target X: X_landing = 8.49 + ΔX
+- Target Y: Y_landing = 128.00 (Fixed nether roof floor collision)
+- Firing Angle (Degrees relative to North): Angle = arctan2(ΔX, -ΔZ) * (180 / π)
+- Total Distance: Dist = sqrt(ΔX² + ΔZ²)
+- Loading Time (s): t_load = 7.5 + 0.3 * B
+- Waiting Time (s): t_wait = 16.1 + 0.55 * B
+
+### 4. REQUIRED APPLICATION FEATURES
+
+#### Feature 1: Dual Calculator (Tab 1)
+- user input for both mode: firing location (with a consistent Y=128.00) and direction (North etc) Which should be remembered and stored in local storage for future sessions.
+- Mode A: Target Coordinates -> Item Counts & Timing
+  - User Inputs: Target X, Target Z
+  - Displays:
+    - Required Control A items (converted into stacks + remaining items, e.g., 1 stack + 2 items)
+    - Required Control B items (converted into stacks + remaining items)
+    - Loading time (seconds & mm:ss)
+    - Waiting time (seconds & mm:ss)
+    - Firing angle (e.g., -15° West of North) and Total distance (blocks / km)
+    - Warning banner if requested X exceeds the maximum physical limit (A_effective > B + 2).
+- Mode B: Item Counts -> Target Coordinates & Timing
+  - User Inputs: Control A items, Control B items
+  - Displays:
+    - Predicted landing coordinate (X, Y=128.00, Z)
+    - Loading and waiting times
+    - Leftover item warning if Control A > Control B + 2
+- Those Mode inputs should be also be remembered and stored as history and displayed as a list, allowing users to quickly switch between previous calculations.
+
+#### Feature 2: Visualizations & Trajectory Map (Tab 2)
+- Interactive 2D Map (Canvas or Chart.js Scatter plot):
+  - Plots Launch Origin (8.49, 15.64) and Target Landing Coordinate.
+  - Draws a vector line/arc representing the pearl trajectory.
+- Linear Regression Graphs:
+  - Chart 1: Thrust (Z-distance) vs. Control B items.
+  - Chart 2: Lateral Drift & Correction (X-distance) vs. Control A and B.
+  - Chart 3: Loading Time & Waiting Time vs. Control B items.
+
+### 5. DESIGN & STYLING REQUIREMENTS
+- Dark-mode Minecraft redstone / tech theme (Charcoal `#1e1e24`, Redstone Red `#ff3333`, Emerald Green `#4CAF50`, Light Gray text).
+- Responsive layout with sticky navigation tabs or sidebar.
+- Input validation (handles negative numbers, non-numeric inputs gracefully).
