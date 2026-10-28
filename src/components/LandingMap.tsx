@@ -14,6 +14,7 @@ import {
 } from '../calc';
 
 type View = { cx: number; cz: number; scale: number };
+type CanvasSize = { width: number; height: number };
 
 type DragKind = 'pan' | 'landing' | 'target' | 'path' | 'fan';
 
@@ -49,23 +50,6 @@ const MIN_SCALE = 0.004;
 const MAX_SCALE = 8;
 const HANDLE = 16;
 
-const MEASURED_SHOTS: Point[] = [
-	{ x: 117.64, z: -261.45 },
-	{ x: 227.27, z: -261.45 },
-	{ x: -53.15, z: -1608.23 },
-	{ x: -3235.24, z: -5908.87 },
-	{ x: -834.88, z: -2690.13 },
-	{ x: -19384.78, z: -26580.01 },
-	{ x: 642.71, z: -786.85 },
-	{ x: 4548.53, z: -5908.87 },
-	{ x: 4692.67, z: -5908.87 },
-	{ x: -21136.37, z: -40044.22 },
-	{ x: -36967.69, z: -60078.72 },
-	{ x: -4532.53, z: -5908.87 },
-	{ x: -70.7, z: -12824.42 },
-	{ x: 2147.62, z: -2690.13 },
-];
-
 const formatCoord = (value: number) =>
 	value.toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
 
@@ -89,14 +73,14 @@ const niceTicks = (start: number, end: number, count: number) => {
 
 const clampScale = (scale: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale));
 
-const worldToScreen = (point: Point, view: View, size: number): Point => ({
-	x: (point.x - view.cx) * view.scale + size / 2,
-	z: (point.z - view.cz) * view.scale + size / 2,
+const worldToScreen = (point: Point, view: View, size: CanvasSize): Point => ({
+	x: (point.x - view.cx) * view.scale + size.width / 2,
+	z: (point.z - view.cz) * view.scale + size.height / 2,
 });
 
-const screenToWorld = (x: number, z: number, view: View, size: number): Point => ({
-	x: (x - size / 2) / view.scale + view.cx,
-	z: (z - size / 2) / view.scale + view.cz,
+const screenToWorld = (x: number, z: number, view: View, size: CanvasSize): Point => ({
+	x: (x - size.width / 2) / view.scale + view.cx,
+	z: (z - size.height / 2) / view.scale + view.cz,
 });
 
 const distanceToSegment = (px: number, py: number, ax: number, ay: number, bx: number, by: number) => {
@@ -118,7 +102,7 @@ const projectOntoRay = (origin: Point, landing: Point, point: Point): Point => {
 const fanWorldPoints = (origin: Origin, b: number) =>
 	createFan(b).map((point) => calculateLanding(point.z, point.x, origin, origin.direction));
 
-const fitView = (points: Point[], size: number): View => {
+const fitView = (points: Point[], size: CanvasSize): View => {
 	const xs = points.map((point) => point.x);
 	const zs = points.map((point) => point.z);
 	const x0 = Math.min(...xs);
@@ -126,14 +110,18 @@ const fitView = (points: Point[], size: number): View => {
 	const z0 = Math.min(...zs);
 	const z1 = Math.max(...zs);
 	const span = Math.max(x1 - x0, z1 - z0, 80) * 1.28;
-	return { cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, scale: clampScale(size / span) };
+	return {
+		cx: (x0 + x1) / 2,
+		cz: (z0 + z1) / 2,
+		scale: clampScale(Math.min(size.width, size.height) / span),
+	};
 };
 
 const hitKind = (
 	x: number,
 	y: number,
 	view: View,
-	size: number,
+	size: CanvasSize,
 	origin: Point,
 	landing: Point,
 	target: Point,
@@ -194,8 +182,8 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 		const wrap = wrapRef.current;
 		if (!canvas || !wrap) return;
 
-		const size = canvas.clientWidth;
-		if (size < 8) return;
+		const size = { width: canvas.clientWidth, height: canvas.clientHeight };
+		if (size.width < 8 || size.height < 8) return;
 
 		const { origin, shot, target, b } = propsRef.current;
 		const fan = fanWorldPoints(origin, b);
@@ -206,8 +194,8 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 
 		const view = viewRef.current;
 		const pixelRatio = window.devicePixelRatio || 1;
-		canvas.width = size * pixelRatio;
-		canvas.height = size * pixelRatio;
+		canvas.width = size.width * pixelRatio;
+		canvas.height = size.height * pixelRatio;
 		const context = canvas.getContext('2d');
 		if (!context) return;
 
@@ -217,12 +205,12 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 		const toScreen = (point: Point) => worldToScreen(point, view, size);
 
 		context.fillStyle = color('--map-bg');
-		context.fillRect(0, 0, size, size);
+		context.fillRect(0, 0, size.width, size.height);
 
-		const left = view.cx - size / 2 / view.scale;
-		const right = view.cx + size / 2 / view.scale;
-		const top = view.cz - size / 2 / view.scale;
-		const bottom = view.cz + size / 2 / view.scale;
+		const left = view.cx - size.width / 2 / view.scale;
+		const right = view.cx + size.width / 2 / view.scale;
+		const top = view.cz - size.height / 2 / view.scale;
+		const bottom = view.cz + size.height / 2 / view.scale;
 
 		context.lineWidth = 1;
 		context.font = '11px Inter, ui-sans-serif, system-ui, sans-serif';
@@ -231,29 +219,20 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 			context.strokeStyle = color('--map-grid');
 			context.beginPath();
 			context.moveTo(x, 0);
-			context.lineTo(x, size);
+			context.lineTo(x, size.height);
 			context.stroke();
 			context.fillStyle = color('--map-muted');
-			context.fillText(formatWorld(value), x + 4, size - 8);
+			context.fillText(formatWorld(value), x + 4, size.height - 8);
 		});
 		niceTicks(top, bottom, 6).forEach((value) => {
 			const y = toScreen({ x: 0, z: value }).z;
 			context.strokeStyle = color('--map-grid');
 			context.beginPath();
 			context.moveTo(0, y);
-			context.lineTo(size, y);
+			context.lineTo(size.width, y);
 			context.stroke();
 			context.fillStyle = color('--map-muted');
 			context.fillText(formatWorld(value), 6, y - 5);
-		});
-
-		context.strokeStyle = color('--map-muted');
-		context.lineWidth = 1.5;
-		MEASURED_SHOTS.forEach((shotPoint) => {
-			const screen = toScreen(shotPoint);
-			context.beginPath();
-			context.arc(screen.x, screen.z, 3.5, 0, Math.PI * 2);
-			context.stroke();
 		});
 
 		const originScreen = toScreen(origin);
@@ -315,7 +294,7 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 
 		context.fillStyle = color('--map-fg');
 		context.font = '700 13px Inter, ui-sans-serif, system-ui, sans-serif';
-		context.fillText('N ↑', size - 38, 22);
+		context.fillText('N ↑', size.width - 38, 22);
 	}, []);
 
 	useEffect(() => {
@@ -339,13 +318,13 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 			const rect = canvas.getBoundingClientRect();
 			const x = event.clientX - rect.left;
 			const y = event.clientY - rect.top;
-			const size = rect.width;
+			const size = { width: rect.width, height: rect.height };
 			const before = screenToWorld(x, y, viewRef.current, size);
 			const nextScale = clampScale(viewRef.current.scale * (event.deltaY < 0 ? 1.12 : 1 / 1.12));
 			viewRef.current = {
 				scale: nextScale,
-				cx: before.x - (x - size / 2) / nextScale,
-				cz: before.z - (y - size / 2) / nextScale,
+				cx: before.x - (x - size.width / 2) / nextScale,
+				cz: before.z - (y - size.height / 2) / nextScale,
 			};
 			draw();
 		};
@@ -355,7 +334,11 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 
 	const pointerLocation = (event: React.PointerEvent<HTMLCanvasElement>) => {
 		const rect = event.currentTarget.getBoundingClientRect();
-		return { x: event.clientX - rect.left, y: event.clientY - rect.top, size: rect.width };
+		return {
+			x: event.clientX - rect.left,
+			y: event.clientY - rect.top,
+			size: { width: rect.width, height: rect.height },
+		};
 	};
 
 	const applyDrag = (kind: DragKind, point: Point, screenX: number, screenY: number) => {
@@ -454,7 +437,8 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 	};
 
 	const resetView = () => {
-		const size = canvasRef.current?.clientWidth ?? 0;
+		const canvas = canvasRef.current;
+		const size = { width: canvas?.clientWidth ?? 0, height: canvas?.clientHeight ?? 0 };
 		const { origin, shot, target, b } = propsRef.current;
 		viewRef.current = fitView([origin, shot.landing, target, ...fanWorldPoints(origin, b)], size);
 		draw();
@@ -504,12 +488,12 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 			</div>
 			<div
 				ref={wrapRef}
-				className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white lg:min-h-0 lg:flex-1 [--map-bg:#ffffff] [--map-blue:#0284c7] [--map-fg:#0f172a] [--map-grid:#e2e8f0] [--map-muted:#64748b] [--map-orange:#ea580c] dark:border-slate-700 dark:bg-slate-900 dark:[--map-bg:#0f172a] dark:[--map-blue:#38bdf8] dark:[--map-fg:#f8fafc] dark:[--map-grid:#1e293b] dark:[--map-muted:#94a3b8] dark:[--map-orange:#fb923c]"
+				className="relative min-h-72 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white lg:min-h-0 lg:flex-1 [--map-bg:#ffffff] [--map-blue:#0284c7] [--map-fg:#0f172a] [--map-grid:#e2e8f0] [--map-muted:#64748b] [--map-orange:#ea580c] dark:border-slate-700 dark:bg-slate-900 dark:[--map-bg:#0f172a] dark:[--map-blue:#38bdf8] dark:[--map-fg:#f8fafc] dark:[--map-grid:#1e293b] dark:[--map-muted:#94a3b8] dark:[--map-orange:#fb923c]"
 			>
 				<canvas
 					ref={canvasRef}
 					aria-label="Interactive landing map. Drag to pan, hold Control and scroll to zoom, drag landing or target to aim."
-					className="block aspect-square w-full touch-none"
+					className="block h-full w-full touch-none"
 					role="application"
 					style={{ cursor }}
 					tabIndex={0}
@@ -543,7 +527,6 @@ export function LandingMap({ origin, shot, target, a, b, onAim, onSteer }: Landi
 			<div className="flex flex-wrap gap-x-3 gap-y-1 px-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300 sm:text-[11px]">
 				<span>Orange path · shot</span>
 				<span>Blue fan · reachable A</span>
-				<span>Rings · measured</span>
 			</div>
 		</div>
 	);
