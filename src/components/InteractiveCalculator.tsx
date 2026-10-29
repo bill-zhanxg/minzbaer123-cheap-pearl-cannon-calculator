@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { toast } from 'sonner';
 
 import {
 	MAX_ITEMS,
@@ -134,7 +135,6 @@ export function InteractiveCalculator() {
 	const [presetName, setPresetName] = useState('');
 	const [importJson, setImportJson] = useState('');
 	const [showImport, setShowImport] = useState(false);
-	const [presetStatus, setPresetStatus] = useState('');
 	const [copied, setCopied] = useState(false);
 
 	const { originX, originZ, direction, a, b, targetX, targetZ } = inputs;
@@ -216,32 +216,32 @@ export function InteractiveCalculator() {
 	const savePreset = () => {
 		const name = presetName.trim();
 		if (!name) {
-			setPresetStatus('Enter a preset name first.');
+			toast.error('Enter a preset name first.');
 			return;
 		}
 		const preset = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, name, inputs };
 		setPresets((current) => [...current.filter((item) => item.name.toLowerCase() !== name.toLowerCase()), preset]);
 		setPresetName('');
-		setPresetStatus(`Saved "${name}".`);
+		toast.success(`Saved "${name}".`);
 	};
 
 	const loadPreset = (preset: Preset) => {
 		setInputs(preset.inputs);
-		setPresetStatus(`Loaded "${preset.name}".`);
+		toast.success(`Loaded "${preset.name}".`);
 	};
 
 	const deletePreset = (preset: Preset) => {
 		setPresets((current) => current.filter((item) => item.id !== preset.id));
-		setPresetStatus(`Deleted "${preset.name}".`);
+		toast.success(`Deleted "${preset.name}".`);
 	};
 
 	const copyJson = async (value: unknown, successMessage: string) => {
 		try {
 			await navigator.clipboard.writeText(JSON.stringify(value, null, 2));
-			setPresetStatus(successMessage);
+			toast.success(successMessage);
 		} catch (error) {
 			console.warn('Unable to copy preset JSON.', error);
-			setPresetStatus('Unable to copy preset JSON.');
+			toast.error('Unable to copy preset JSON.');
 		}
 	};
 
@@ -254,7 +254,7 @@ export function InteractiveCalculator() {
 					!!value && typeof value === 'object' && typeof value.name === 'string' && isPersistedInputs(value.inputs),
 			);
 			if (valid.length === 0) {
-				setPresetStatus('No valid presets found in that JSON.');
+				toast.error('No valid presets found in that JSON.');
 				return;
 			}
 			const normalized = valid.map((preset) => ({
@@ -269,10 +269,10 @@ export function InteractiveCalculator() {
 				...normalized,
 			]);
 			setImportJson('');
-			setPresetStatus(`Imported ${normalized.length} preset${normalized.length === 1 ? '' : 's'}.`);
+			toast.success(`Imported ${normalized.length} preset${normalized.length === 1 ? '' : 's'}.`);
 		} catch (error) {
 			console.warn('Unable to parse preset JSON.', error);
-			setPresetStatus('That JSON could not be imported.');
+			toast.error('That JSON could not be imported.');
 		}
 	};
 
@@ -420,11 +420,6 @@ export function InteractiveCalculator() {
 										>
 											<Icon name="plus" size={15} />
 										</button>
-										{presetStatus && (
-											<p className="col-span-full truncate text-xs text-slate-500 dark:text-slate-400">
-												{presetStatus}
-											</p>
-										)}
 									</div>
 								)}
 							</div>

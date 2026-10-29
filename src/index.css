@@ -1,218 +1,222 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @layer base {
-  :root {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-    color-scheme: light;
-  }
+	:root {
+		font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+		color-scheme: light;
+	}
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color-scheme: dark;
-    }
-  }
+	@media (prefers-color-scheme: dark) {
+		:root {
+			color-scheme: dark;
+		}
+	}
 
-  input,
-  select {
-    width: 100%;
-    border: 1px solid var(--color-slate-300);
-    border-radius: 0.75rem;
-    background: white;
-    padding: 0.65rem 0.75rem;
-    color: var(--color-slate-900);
-    outline: none;
-    transition: border-color 150ms, box-shadow 150ms;
-  }
+	input,
+	select {
+		width: 100%;
+		border: 1px solid var(--color-slate-300);
+		border-radius: 0.75rem;
+		background: white;
+		padding: 0.65rem 0.75rem;
+		color: var(--color-slate-900);
+		outline: none;
+		transition:
+			border-color 150ms,
+			box-shadow 150ms;
+	}
 
-  input:focus,
-  select:focus {
-    border-color: var(--color-orange-500);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-orange-500) 20%, transparent);
-  }
+	input:focus,
+	select:focus {
+		border-color: var(--color-orange-500);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-orange-500) 20%, transparent);
+	}
 
-  button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    border-radius: 0.75rem;
-    background: var(--color-orange-600);
-    padding: 0.65rem 1rem;
-    color: white;
-    font-size: 0.875rem;
-    font-weight: 700;
-    transition: background 150ms, transform 150ms;
-  }
+	button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		border-radius: 0.75rem;
+		background: var(--color-orange-600);
+		padding: 0.65rem 1rem;
+		color: white;
+		font-size: 0.875rem;
+		font-weight: 700;
+		transition:
+			background 150ms,
+			transform 150ms;
+	}
 
-  button:hover {
-    background: var(--color-orange-700);
-  }
+	button:hover {
+		background: var(--color-orange-700);
+	}
 
-  button:active {
-    transform: translateY(1px);
-  }
+	button:active {
+		transform: translateY(1px);
+	}
 
-  button.secondary,
-  button.icon-button {
-    border: 1px solid var(--color-slate-300);
-    background: transparent;
-    color: var(--color-slate-700);
-  }
+	button.secondary,
+	button.icon-button {
+		border: 1px solid var(--color-slate-300);
+		background: transparent;
+		color: var(--color-slate-700);
+	}
 
-  button.secondary:hover,
-  button.icon-button:hover {
-    background: var(--color-slate-100);
-  }
+	button.secondary:hover,
+	button.icon-button:hover {
+		background: var(--color-slate-100);
+	}
 
-  button.icon-button {
-    padding: 0.4rem 0.65rem;
-    font-size: 0.75rem;
-  }
+	button.icon-button {
+		padding: 0.4rem 0.65rem;
+		font-size: 0.75rem;
+	}
 
-  button.preset-icon {
-    min-width: 1.75rem;
-    height: 1.75rem;
-    border: 0;
-    padding: 0.3rem;
-    border-radius: 0.5rem;
-    background: transparent;
-  }
+	button.preset-icon {
+		min-width: 1.75rem;
+		height: 1.75rem;
+		border: 0;
+		padding: 0.3rem;
+		border-radius: 0.5rem;
+		background: transparent;
+	}
 
-  button.preset-icon:hover {
-    border: 0;
-    background: var(--color-slate-100);
-  }
+	button.preset-icon:hover {
+		border: 0;
+		background: var(--color-slate-100);
+	}
 
-  .preset-list {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-slate-400) transparent;
-  }
+	.preset-list {
+		scrollbar-width: thin;
+		scrollbar-color: var(--color-slate-400) transparent;
+	}
 
-  .preset-list::-webkit-scrollbar {
-    width: 2px;
-  }
+	.preset-list::-webkit-scrollbar {
+		width: 2px;
+	}
 
-  .preset-list::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: var(--color-slate-400);
-  }
+	.preset-list::-webkit-scrollbar-thumb {
+		border-radius: 999px;
+		background: var(--color-slate-400);
+	}
 
-  button.map-control-button {
-    min-width: 2rem;
-    height: 2rem;
-    border: 1px solid transparent;
-    border-radius: 0.625rem;
-    background: transparent;
-    padding: 0 0.5rem;
-    color: var(--color-slate-600);
-    font-size: 0.875rem;
-    font-weight: 800;
-    line-height: 1;
-  }
+	button.map-control-button {
+		min-width: 2rem;
+		height: 2rem;
+		border: 1px solid transparent;
+		border-radius: 0.625rem;
+		background: transparent;
+		padding: 0 0.5rem;
+		color: var(--color-slate-600);
+		font-size: 0.875rem;
+		font-weight: 800;
+		line-height: 1;
+	}
 
-  button.map-control-button:hover {
-    border-color: var(--color-slate-300);
-    background: white;
-    color: var(--color-orange-700);
-  }
+	button.map-control-button:hover {
+		border-color: var(--color-slate-300);
+		background: white;
+		color: var(--color-orange-700);
+	}
 
-  button.map-control-button:focus-visible {
-    outline: 2px solid var(--color-orange-500);
-    outline-offset: 1px;
-  }
+	button.map-control-button:focus-visible {
+		outline: 2px solid var(--color-orange-500);
+		outline-offset: 1px;
+	}
 
-  button.map-fit-button {
-    min-width: 4.5rem;
-    font-size: 0.75rem;
-  }
+	button.map-fit-button {
+		min-width: 4.5rem;
+		font-size: 0.75rem;
+	}
 }
 
 @layer components {
-  .metric {
-    display: grid;
-    min-width: 0;
-    gap: 0.25rem;
-    border: 1px solid var(--color-slate-200);
-    border-radius: 1rem;
-    padding: 1rem;
-    color: var(--color-slate-500);
-  }
+	.metric {
+		display: grid;
+		min-width: 0;
+		gap: 0.25rem;
+		border: 1px solid var(--color-slate-200);
+		border-radius: 1rem;
+		padding: 1rem;
+		color: var(--color-slate-500);
+	}
 
-  .coordinate-cell {
-    container-type: inline-size;
-  }
+	.coordinate-cell {
+		container-type: inline-size;
+	}
 
-  .coordinate-value {
-    margin: 0;
-    overflow: hidden;
-    font-size: clamp(0.75rem, 18cqw, 1.5rem);
-    line-height: 1.15;
-    text-overflow: clip;
-    white-space: nowrap;
-  }
+	.coordinate-value {
+		margin: 0;
+		overflow: hidden;
+		font-size: clamp(0.75rem, 18cqw, 1.5rem);
+		line-height: 1.15;
+		text-overflow: clip;
+		white-space: nowrap;
+	}
 
-  .metric svg {
-    color: var(--color-orange-600);
-  }
+	.metric svg {
+		color: var(--color-orange-600);
+	}
 
-  .metric span {
-    font-size: 0.75rem;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-  }
+	.metric span {
+		font-size: 0.75rem;
+		font-weight: 600;
+		overflow-wrap: anywhere;
+	}
 
-  .metric strong {
-    color: var(--color-slate-900);
-    font-size: 1rem;
-    overflow-wrap: anywhere;
-  }
+	.metric strong {
+		color: var(--color-slate-900);
+		font-size: 1rem;
+		overflow-wrap: anywhere;
+	}
 
-  .metric small {
-    color: var(--color-slate-400);
-    font-size: 0.75rem;
-    overflow-wrap: anywhere;
-  }
+	.metric small {
+		color: var(--color-slate-400);
+		font-size: 0.75rem;
+		overflow-wrap: anywhere;
+	}
 
-  @media (prefers-color-scheme: dark) {
-    input,
-    select {
-      border-color: var(--color-slate-700);
-      background: var(--color-slate-800);
-      color: var(--color-slate-100);
-    }
+	@media (prefers-color-scheme: dark) {
+		input,
+		select {
+			border-color: var(--color-slate-700);
+			background: var(--color-slate-800);
+			color: var(--color-slate-100);
+		}
 
-    button.secondary,
-    button.icon-button {
-      border-color: var(--color-slate-700);
-      color: var(--color-slate-300);
-    }
+		button.secondary,
+		button.icon-button {
+			border-color: var(--color-slate-700);
+			color: var(--color-slate-300);
+		}
 
-    button.secondary:hover,
-    button.icon-button:hover {
-      background: var(--color-slate-800);
-    }
+		button.secondary:hover,
+		button.icon-button:hover {
+			background: var(--color-slate-800);
+		}
 
-    button.map-control-button {
-      color: var(--color-slate-300);
-    }
+		button.map-control-button {
+			color: var(--color-slate-300);
+		}
 
-    button.map-control-button:hover {
-      border-color: var(--color-slate-600);
-      background: var(--color-slate-700);
-      color: var(--color-orange-300);
-    }
+		button.map-control-button:hover {
+			border-color: var(--color-slate-600);
+			background: var(--color-slate-700);
+			color: var(--color-orange-300);
+		}
 
-    .metric {
-      border-color: var(--color-slate-700);
-    }
+		.metric {
+			border-color: var(--color-slate-700);
+		}
 
-    .metric strong {
-      color: var(--color-slate-100);
-    }
+		.metric strong {
+			color: var(--color-slate-100);
+		}
 
-    .metric small {
-      color: var(--color-slate-500);
-    }
-  }
+		.metric small {
+			color: var(--color-slate-500);
+		}
+	}
 }
