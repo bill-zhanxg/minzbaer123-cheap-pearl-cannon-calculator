@@ -1,10 +1,83 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { MAX_ITEMS, calculateMissDistance, calculateOverworld, calculateShot, solveTarget, type Origin, type Point } from './calc';
 import { Icon, type IconName } from './components/Icon';
 import { LandingMap } from './components/LandingMap';
 
 const DEFAULT_ORIGIN: Origin = { x: 8.49, z: 15.64, direction: 0 };
+const STORAGE_KEY = 'ender-pearl-cannon-calculator:inputs:v1';
+const PRESETS_STORAGE_KEY = 'ender-pearl-cannon-calculator:presets:v1';
+
+type PersistedInputs = {
+	originX: string;
+	originZ: string;
+	direction: string;
+	a: string;
+	b: string;
+	targetX: string;
+	targetZ: string;
+};
+
+type Preset = {
+	id: string;
+	name: string;
+	inputs: PersistedInputs;
+};
+
+const DEFAULT_INPUTS: PersistedInputs = {
+	originX: String(DEFAULT_ORIGIN.x),
+	originZ: String(DEFAULT_ORIGIN.z),
+	direction: String(DEFAULT_ORIGIN.direction),
+	a: '40',
+	b: '64',
+	targetX: '-2000',
+	targetZ: '-6000',
+};
+
+const readPersistedInputs = (): PersistedInputs => {
+	try {
+		const stored = window.localStorage.getItem(STORAGE_KEY);
+		if (!stored) return DEFAULT_INPUTS;
+
+		const parsed: unknown = JSON.parse(stored);
+		if (!parsed || typeof parsed !== 'object') return DEFAULT_INPUTS;
+
+		const values = parsed as Record<string, unknown>;
+		const keys = Object.keys(DEFAULT_INPUTS) as Array<keyof PersistedInputs>;
+		if (!keys.every((key) => typeof values[key] === 'string')) return DEFAULT_INPUTS;
+
+		return Object.fromEntries(keys.map((key) => [key, values[key]])) as PersistedInputs;
+	} catch (error) {
+		console.warn('Unable to load saved calculator inputs.', error);
+		return DEFAULT_INPUTS;
+	}
+};
+
+const isPersistedInputs = (value: unknown): value is PersistedInputs => {
+	if (!value || typeof value !== 'object') return false;
+	const values = value as Record<string, unknown>;
+	return (Object.keys(DEFAULT_INPUTS) as Array<keyof PersistedInputs>).every((key) => typeof values[key] === 'string');
+};
+
+const readPresets = (): Preset[] => {
+	try {
+		const stored = window.localStorage.getItem(PRESETS_STORAGE_KEY);
+		if (!stored) return [];
+		const parsed: unknown = JSON.parse(stored);
+		if (!Array.isArray(parsed)) return [];
+		return parsed.filter(
+			(value): value is Preset =>
+				!!value &&
+				typeof value === 'object' &&
+				typeof value.id === 'string' &&
+				typeof value.name === 'string' &&
+				isPersistedInputs(value.inputs),
+		);
+	} catch (error) {
+		console.warn('Unable to load saved presets.', error);
+		return [];
+	}
+};
 
 const formatDuration = (value: number) => {
 	const totalSeconds = Math.round(value);
@@ -48,14 +121,33 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 function App() {
-	const [originX, setOriginX] = useState(String(DEFAULT_ORIGIN.x));
-	const [originZ, setOriginZ] = useState(String(DEFAULT_ORIGIN.z));
-	const [direction, setDirection] = useState(String(DEFAULT_ORIGIN.direction));
-	const [a, setA] = useState('40');
-	const [b, setB] = useState('64');
-	const [targetX, setTargetX] = useState('-2000');
-	const [targetZ, setTargetZ] = useState('-6000');
+	const [inputs, setInputs] = useState<PersistedInputs>(readPersistedInputs);
+	const [presets, setPresets] = useState<Preset[]>(readPresets);
+	const [presetName, setPresetName] = useState('');
+	const [importJson, setImportJson] = useState('');
+	const [presetStatus, setPresetStatus] = useState('');
 	const [copied, setCopied] = useState(false);
+
+	const { originX, originZ, direction, a, b, targetX, targetZ } = inputs;
+	const updateInput = (key: keyof PersistedInputs, value: string) => {
+		setInputs((current) => ({ ...current, [key]: value }));
+	};
+
+	useEffect(() => {
+		try {
+			window.localStorage.setItem(STORAGE_KEY, JSON.stringify(inputs));
+		} catch (error) {
+			console.warn('Unable to save calculator inputs.', error);
+		}
+	}, [inputs]);
+
+	useEffect(() => {
+		try {
+			window.localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(presets));
+		} catch (error) {
+			console.warn('Unable to save presets.', error);
+		}
+	}, [presets]);
 
 	const origin: Origin = { x: Number(originX) || 0, z: Number(originZ) || 0, direction: Number(direction) || 0 };
 	const shot = useMemo(
@@ -80,12 +172,17 @@ function App() {
 	const bItems = formatItems(bValue);
 
 	const aimAt = (point: Point) => {
-		setTargetX(String(point.x.toFixed(1)));
-		setTargetZ(String(point.z.toFixed(1)));
+		const nextTargetX = String(point.x.toFixed(1));
+		const nextTargetZ = String(point.z.toFixed(1));
 		const solution = solveTarget(point, origin);
 		if (solution.behindCannon) return;
-		setA(String(solution.a));
-		setB(String(solution.b));
+		setInputs((current) => ({
+			...current,
+			targetX: nextTargetX,
+			targetZ: nextTargetZ,
+			a: String(solution.a),
+			b: String(solution.b),
+		}));
 	};
 
 	const solve = () => {
@@ -93,15 +190,82 @@ function App() {
 	};
 
 	const reset = () => {
-		setOriginX(String(DEFAULT_ORIGIN.x));
-		setOriginZ(String(DEFAULT_ORIGIN.z));
-		setDirection(String(DEFAULT_ORIGIN.direction));
+		setInputs((current) => ({
+			...current,
+			originX: String(DEFAULT_ORIGIN.x),
+			originZ: String(DEFAULT_ORIGIN.z),
+			direction: String(DEFAULT_ORIGIN.direction),
+		}));
 	};
 
 	const copyCommand = async () => {
 		await navigator.clipboard.writeText(command);
 		setCopied(true);
 		window.setTimeout(() => setCopied(false), 1600);
+	};
+
+	const savePreset = () => {
+		const name = presetName.trim();
+		if (!name) {
+			setPresetStatus('Enter a preset name first.');
+			return;
+		}
+		const preset = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, name, inputs };
+		setPresets((current) => [...current.filter((item) => item.name.toLowerCase() !== name.toLowerCase()), preset]);
+		setPresetName('');
+		setPresetStatus(`Saved "${name}".`);
+	};
+
+	const loadPreset = (preset: Preset) => {
+		setInputs(preset.inputs);
+		setPresetStatus(`Loaded "${preset.name}".`);
+	};
+
+	const deletePreset = (preset: Preset) => {
+		setPresets((current) => current.filter((item) => item.id !== preset.id));
+		setPresetStatus(`Deleted "${preset.name}".`);
+	};
+
+	const copyJson = async (value: unknown, successMessage: string) => {
+		try {
+			await navigator.clipboard.writeText(JSON.stringify(value, null, 2));
+			setPresetStatus(successMessage);
+		} catch (error) {
+			console.warn('Unable to copy preset JSON.', error);
+			setPresetStatus('Unable to copy preset JSON.');
+		}
+	};
+
+	const importPresets = () => {
+		try {
+			const parsed: unknown = JSON.parse(importJson);
+			const imported = Array.isArray(parsed) ? parsed : [parsed];
+			const valid = imported.filter(
+				(value): value is Preset =>
+					!!value &&
+					typeof value === 'object' &&
+					typeof value.name === 'string' &&
+					isPersistedInputs(value.inputs),
+			);
+			if (valid.length === 0) {
+				setPresetStatus('No valid presets found in that JSON.');
+				return;
+			}
+			const normalized = valid.map((preset) => ({
+				id: `${Date.now()}-${Math.random().toString(36).slice(2)}-${preset.name}`,
+				name: preset.name,
+				inputs: preset.inputs,
+			}));
+			setPresets((current) => [
+				...current.filter((preset) => !normalized.some((item) => item.name.toLowerCase() === preset.name.toLowerCase())),
+				...normalized,
+			]);
+			setImportJson('');
+			setPresetStatus(`Imported ${normalized.length} preset${normalized.length === 1 ? '' : 's'}.`);
+		} catch (error) {
+			console.warn('Unable to parse preset JSON.', error);
+			setPresetStatus('That JSON could not be imported.');
+		}
 	};
 
 	return (
@@ -118,7 +282,8 @@ function App() {
 				</header>
 
 				<section className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
-					<div className="grid gap-8 lg:grid-cols-3">
+					<div className="grid gap-8 lg:grid-cols-4">
+						<div className="grid gap-8 lg:col-span-3 lg:grid-cols-3">
 						<div>
 							<SectionHeading description="Where the cannon is located." icon="pin" title="Origin" />
 							<div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
@@ -127,7 +292,7 @@ function App() {
 										type="number"
 										step="any"
 										value={originX}
-										onChange={(event) => setOriginX(event.target.value)}
+										onChange={(event) => updateInput('originX', event.target.value)}
 									/>
 								</Field>
 								<Field label="Z">
@@ -135,11 +300,11 @@ function App() {
 										type="number"
 										step="any"
 										value={originZ}
-										onChange={(event) => setOriginZ(event.target.value)}
+										onChange={(event) => updateInput('originZ', event.target.value)}
 									/>
 								</Field>
 								<Field label="Facing">
-									<select value={direction} onChange={(event) => setDirection(event.target.value)}>
+									<select value={direction} onChange={(event) => updateInput('direction', event.target.value)}>
 										<option value="0">North (-Z)</option>
 										<option value="90">East (+X)</option>
 										<option value="180">South (+Z)</option>
@@ -160,7 +325,7 @@ function App() {
 										value={a}
 										onChange={(event) => {
 											const nextA = Math.min(MAX_ITEMS, Math.max(0, Math.round(Number(event.target.value) || 0)));
-											setA(String(nextA));
+											updateInput('a', String(nextA));
 										}}
 									/>
 									{aExceedsDirectionLimit && <span className="text-xs font-medium text-amber-600 dark:text-amber-400">A above B + 1 is ignored for sideways direction.</span>}
@@ -174,7 +339,7 @@ function App() {
 										value={b}
 										onChange={(event) => {
 											const nextB = Math.min(MAX_ITEMS, Math.max(1, Math.round(Number(event.target.value) || 1)));
-											setB(String(nextB));
+											updateInput('b', String(nextB));
 										}}
 									/>
 								</Field>
@@ -188,7 +353,7 @@ function App() {
 										type="number"
 										step="any"
 										value={targetX}
-										onChange={(event) => setTargetX(event.target.value)}
+										onChange={(event) => updateInput('targetX', event.target.value)}
 									/>
 								</Field>
 								<Field label="Target Z">
@@ -196,7 +361,7 @@ function App() {
 										type="number"
 										step="any"
 										value={targetZ}
-										onChange={(event) => setTargetZ(event.target.value)}
+										onChange={(event) => updateInput('targetZ', event.target.value)}
 									/>
 								</Field>
 							</div>
@@ -209,6 +374,100 @@ function App() {
 								</button>
 							</div>
 						</div>
+						</div>
+						<aside className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+							<div className="mb-4 flex items-start justify-between gap-3">
+								<div className="flex items-start gap-3">
+								<div className="rounded-xl bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+									<Icon name="box" />
+								</div>
+								<div>
+									<h2 className="text-base font-bold text-slate-950 dark:text-white">Presets</h2>
+									<p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Click a preset to load it.</p>
+								</div>
+								</div>
+								<button
+									aria-label="Copy all presets as JSON"
+									className="icon-button"
+									title="Copy all presets as JSON"
+									type="button"
+									onClick={() => copyJson(presets, 'All presets copied as JSON.')}
+								>
+									<Icon name="copy" size={15} />
+								</button>
+							</div>
+							<div className="grid gap-3">
+								<div className="grid gap-2">
+									<span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+										Saved presets
+									</span>
+									{presets.length === 0 ? (
+										<p className="rounded-xl border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-400 dark:border-slate-600">
+											No saved presets yet.
+										</p>
+									) : (
+										<div className="grid gap-2">
+											{presets.map((preset) => (
+												<div
+													key={preset.id}
+													className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900"
+												>
+													<button
+														className="min-w-0 flex-1 justify-start truncate bg-transparent p-1 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400"
+														type="button"
+														onClick={() => loadPreset(preset)}
+													>
+														{preset.name}
+													</button>
+													<div className="flex shrink-0 gap-1">
+														<button
+															aria-label={`Copy ${preset.name} as JSON`}
+															className="icon-button"
+															title="Copy JSON"
+															type="button"
+															onClick={() => copyJson(preset, `"${preset.name}" copied as JSON.`)}
+														>
+															<Icon name="copy" size={15} />
+														</button>
+														<button className="icon-button" type="button" onClick={() => deletePreset(preset)}>
+															Delete
+														</button>
+													</div>
+												</div>
+											))}
+										</div>
+									)}
+								</div>
+								<div className="grid gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
+									<div className="flex gap-2">
+										<input
+											aria-label="New preset name"
+											type="text"
+											placeholder="New preset name"
+											value={presetName}
+											onChange={(event) => setPresetName(event.target.value)}
+											onKeyDown={(event) => {
+												if (event.key === 'Enter') savePreset();
+											}}
+										/>
+										<button type="button" onClick={savePreset}>
+											Save
+										</button>
+									</div>
+									<textarea
+										aria-label="Import preset JSON"
+										className="min-h-20 w-full resize-y rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-900 outline-none focus:border-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+										placeholder="Paste preset JSON to import"
+										value={importJson}
+										onChange={(event) => setImportJson(event.target.value)}
+									/>
+									<button className="secondary" type="button" disabled={!importJson.trim()} onClick={importPresets}>
+										Import JSON
+									</button>
+								</div>
+								{presetStatus && <p className="text-xs text-slate-500 dark:text-slate-400">{presetStatus}</p>}
+							</div>
+						</aside>
 					</div>
 				</section>
 
@@ -221,7 +480,7 @@ function App() {
 							shot={shot}
 							target={target}
 							onAim={aimAt}
-							onSteer={(nextA) => setA(String(nextA))}
+							onSteer={(nextA) => updateInput('a', String(nextA))}
 						/>
 					</section>
 
