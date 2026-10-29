@@ -339,7 +339,7 @@ function App() {
 					</div>
 					<p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
 						<strong className="text-slate-700 dark:text-slate-200">Miss vs target:</strong> {missDistance.toFixed(0)}{' '}
-						blocks · Flight {(shot.ticks / 20).toFixed(1)} s
+						blocks · Flight: {shot.ticks.toFixed()} ticks ({(shot.ticks / 20).toFixed(1)} s)
 					</p>
 					</section>
 				</div>
