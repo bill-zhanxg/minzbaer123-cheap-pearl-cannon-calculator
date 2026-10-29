@@ -13,7 +13,7 @@ import {
 import { Icon, type IconName } from './Icon';
 import { LandingMap } from './LandingMap';
 
-const DEFAULT_ORIGIN: Origin = { x: 8.49, z: 15.64, direction: 0 };
+const DEFAULT_ORIGIN: Origin = { x: 0, z: 0, direction: 0 };
 const STORAGE_KEY = 'ender-pearl-cannon-calculator:inputs:v1';
 const PRESETS_STORAGE_KEY = 'ender-pearl-cannon-calculator:presets:v1';
 
@@ -198,15 +198,6 @@ export function InteractiveCalculator() {
 		aimAt(target);
 	};
 
-	const reset = () => {
-		setInputs((current) => ({
-			...current,
-			originX: String(DEFAULT_ORIGIN.x),
-			originZ: String(DEFAULT_ORIGIN.z),
-			direction: String(DEFAULT_ORIGIN.direction),
-		}));
-	};
-
 	const copyCommand = async () => {
 		await navigator.clipboard.writeText(command);
 		setCopied(true);
@@ -214,13 +205,22 @@ export function InteractiveCalculator() {
 	};
 
 	const savePreset = () => {
-		const name = presetName.trim();
+		// If the same name, should rename to name (1), name (2), etc.
+		let name = presetName.trim();
 		if (!name) {
 			toast.error('Enter a preset name first.');
 			return;
 		}
+		const existing = presets.find((item) => item.name === name);
+		if (existing) {
+			let i = 1;
+			while (presets.some((item) => item.name === `${name} (${i})`)) {
+				i++;
+			}
+			name = `${name} (${i})`;
+		}
 		const preset = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, name, inputs };
-		setPresets((current) => [...current.filter((item) => item.name.toLowerCase() !== name.toLowerCase()), preset]);
+		setPresets((current) => [...current, preset]);
 		setPresetName('');
 		toast.success(`Saved "${name}".`);
 	};
@@ -278,9 +278,9 @@ export function InteractiveCalculator() {
 
 	return (
 		<>
-			<section className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
-				<div className="grid gap-8 lg:grid-cols-4">
-					<div className="grid gap-8 lg:col-span-3 lg:grid-cols-3">
+			<section className="mb-6 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+				<div className="grid lg:grid-cols-4">
+					<div className="grid gap-8 lg:col-span-3 lg:grid-cols-3 p-5 sm:p-7">
 						<div>
 							<SectionHeading description="Where the cannon is located." icon="pin" title="Origin" />
 							<div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
@@ -366,18 +366,13 @@ export function InteractiveCalculator() {
 									/>
 								</Field>
 							</div>
-							<div className="mt-5 flex flex-wrap gap-2">
-								<button type="button" onClick={solve}>
-									<Icon name="target" size={17} /> Solve A &amp; B
-								</button>
-								<button type="button" className="secondary" onClick={reset}>
-									Reset origin
-								</button>
-							</div>
+							<button type="button" className="mt-4 flex flex-wrap gap-2 w-full" onClick={solve}>
+								<Icon name="target" size={17} /> Solve A &amp; B
+							</button>
 						</div>
 					</div>
-					<aside className="relative min-w-0 self-start border-slate-200 lg:border-l lg:pl-8 dark:border-slate-700">
-						<div className="flex items-center justify-between gap-3">
+					<aside className="relative flex flex-col min-w-0 self-start border-slate-200 lg:border-l dark:border-slate-700 h-full">
+						<div className="flex items-center justify-between gap-3 p-2 pl-4">
 							<div className="flex min-w-0 items-center gap-2">
 								<Icon name="box" size={18} />
 								<h2 className="truncate text-base font-bold text-slate-950 dark:text-white">Presets</h2>
@@ -424,18 +419,18 @@ export function InteractiveCalculator() {
 								)}
 							</div>
 						</div>
-						<div className="mt-2 border-t border-slate-200 lg:-ml-8 lg:pl-8 dark:border-slate-700">
-							<div className="preset-list max-h-76 divide-y divide-slate-200 overflow-y-auto dark:divide-slate-700">
+						<div className="flex flex-col grow border-t border-slate-200 dark:border-slate-700 max-h-80">
+							<div className="preset-list grow divide-y divide-slate-200 overflow-y-auto dark:divide-slate-700">
 								{presets.length === 0 ?
-									<p className="py-2 text-xs text-slate-400 dark:text-slate-500">No saved presets yet.</p>
+									<p className="py-2 text-sm text-slate-400 dark:text-slate-500 p-4">No saved presets yet.</p>
 								:	<>
 										{presets.map((preset) => (
 											<div
 												key={preset.id}
-												className="group relative flex min-h-8 min-w-0 items-center justify-between gap-2"
+												className="group relative flex min-h-8 min-w-0 items-center justify-between gap-2 px-2"
 											>
 												<button
-													className="absolute inset-0 z-0 justify-start truncate bg-transparent px-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-orange-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-orange-400"
+													className="absolute inset-0 z-0 justify-start truncate bg-transparent px-4 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-orange-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-orange-400"
 													type="button"
 													onClick={() => loadPreset(preset)}
 												>
@@ -466,7 +461,7 @@ export function InteractiveCalculator() {
 									</>
 								}
 							</div>
-							<div className="flex min-h-8 min-w-0 items-center gap-2 border-t border-slate-200 px-1 dark:border-slate-700">
+							<div className="flex min-h-8 min-w-0 items-center gap-2 border-t border-slate-200 dark:border-slate-700 px-4 p-2">
 								<input
 									aria-label="New preset name"
 									className="min-w-0 flex-1 border-0 bg-transparent p-1 text-sm shadow-none focus:border-0 focus:shadow-none"
@@ -481,7 +476,6 @@ export function InteractiveCalculator() {
 								<button
 									aria-label="Save new preset"
 									className="icon-button preset-icon preset-add-icon"
-									disabled={!presetName.trim()}
 									title="Save new preset"
 									type="button"
 									onClick={savePreset}
