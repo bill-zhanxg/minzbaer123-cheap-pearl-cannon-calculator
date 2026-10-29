@@ -402,7 +402,7 @@ export function InteractiveCalculator() {
 									<Icon name="upload" size={15} />
 								</button>
 								{showImport && (
-									<div className="absolute right-0 top-full z-10 mt-2 grid w-64 gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+									<div className="absolute right-0 top-full z-20 mt-2 grid w-64 gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
 										<textarea
 											aria-label="Import preset JSON"
 											className="min-h-16 min-w-0 flex-1 resize-y rounded-lg border border-slate-300 bg-white p-2 text-xs text-slate-900 outline-none focus:border-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
