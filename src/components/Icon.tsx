@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type IconName = 'cannon' | 'pin' | 'sliders' | 'target' | 'map' | 'clock' | 'box' | 'copy';
+export type IconName = 'cannon' | 'pin' | 'sliders' | 'target' | 'map' | 'clock' | 'box' | 'copy' | 'trash' | 'upload' | 'plus';
 
 export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
 	const paths: Record<IconName, ReactNode> = {
@@ -12,6 +12,9 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
 		clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
 		box: <><path d="m21 8-9 5-9-5 9-5 9 5Z" /><path d="M3 8v9l9 5 9-5V8M12 13v9" /></>,
 		copy: <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></>,
+		trash: <><path d="M4 7h16M10 11v6M14 11v6" /><path d="M9 7V4h6v3m-9 0 1 13h10l1-13" /></>,
+		upload: <><path d="M12 16V4m0 0L8 8m4-4 4 4" /><path d="M5 13v6h14v-6" /></>,
+		plus: <><path d="M12 5v14M5 12h14" /></>,
 	};
 
 	return (

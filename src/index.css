@@ -70,6 +70,34 @@
     font-size: 0.75rem;
   }
 
+  button.preset-icon {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    border: 0;
+    padding: 0.3rem;
+    border-radius: 0.5rem;
+    background: transparent;
+  }
+
+  button.preset-icon:hover {
+    border: 0;
+    background: var(--color-slate-100);
+  }
+
+  .preset-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-slate-400) transparent;
+  }
+
+  .preset-list::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  .preset-list::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--color-slate-400);
+  }
+
   button.map-control-button {
     min-width: 2rem;
     height: 2rem;

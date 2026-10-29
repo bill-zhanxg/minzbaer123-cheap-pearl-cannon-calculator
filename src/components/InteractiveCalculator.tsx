@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { MAX_ITEMS, calculateMissDistance, calculateOverworld, calculateShot, solveTarget, type Origin, type Point } from '../calc';
+import {
+	MAX_ITEMS,
+	calculateMissDistance,
+	calculateOverworld,
+	calculateShot,
+	solveTarget,
+	type Origin,
+	type Point,
+} from '../calc';
 import { Icon, type IconName } from './Icon';
 import { LandingMap } from './LandingMap';
 
@@ -125,6 +133,7 @@ export function InteractiveCalculator() {
 	const [presets, setPresets] = useState<Preset[]>(readPresets);
 	const [presetName, setPresetName] = useState('');
 	const [importJson, setImportJson] = useState('');
+	const [showImport, setShowImport] = useState(false);
 	const [presetStatus, setPresetStatus] = useState('');
 	const [copied, setCopied] = useState(false);
 
@@ -242,10 +251,7 @@ export function InteractiveCalculator() {
 			const imported = Array.isArray(parsed) ? parsed : [parsed];
 			const valid = imported.filter(
 				(value): value is Preset =>
-					!!value &&
-					typeof value === 'object' &&
-					typeof value.name === 'string' &&
-					isPersistedInputs(value.inputs),
+					!!value && typeof value === 'object' && typeof value.name === 'string' && isPersistedInputs(value.inputs),
 			);
 			if (valid.length === 0) {
 				setPresetStatus('No valid presets found in that JSON.');
@@ -257,7 +263,9 @@ export function InteractiveCalculator() {
 				inputs: preset.inputs,
 			}));
 			setPresets((current) => [
-				...current.filter((preset) => !normalized.some((item) => item.name.toLowerCase() === preset.name.toLowerCase())),
+				...current.filter(
+					(preset) => !normalized.some((item) => item.name.toLowerCase() === preset.name.toLowerCase()),
+				),
 				...normalized,
 			]);
 			setImportJson('');
@@ -271,8 +279,8 @@ export function InteractiveCalculator() {
 	return (
 		<>
 			<section className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
-					<div className="grid gap-8 lg:grid-cols-4">
-						<div className="grid gap-8 lg:col-span-3 lg:grid-cols-3">
+				<div className="grid gap-8 lg:grid-cols-4">
+					<div className="grid gap-8 lg:col-span-3 lg:grid-cols-3">
 						<div>
 							<SectionHeading description="Where the cannon is located." icon="pin" title="Origin" />
 							<div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
@@ -317,7 +325,11 @@ export function InteractiveCalculator() {
 											updateInput('a', String(nextA));
 										}}
 									/>
-									{aExceedsDirectionLimit && <span className="text-xs font-medium text-amber-600 dark:text-amber-400">A above B + 1 is ignored for sideways direction.</span>}
+									{aExceedsDirectionLimit && (
+										<span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+											A above B + 1 is ignored for sideways direction.
+										</span>
+									)}
 								</Field>
 								<Field hint={`1-${MAX_ITEMS} items`} label="B · forward">
 									<input
@@ -363,181 +375,210 @@ export function InteractiveCalculator() {
 								</button>
 							</div>
 						</div>
-						</div>
-						<aside className="min-w-0 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
-							<div className="mb-4 flex items-start justify-between gap-3">
-								<div className="flex items-start gap-3">
-								<div className="rounded-xl bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-									<Icon name="box" />
-								</div>
-								<div>
-									<h2 className="text-base font-bold text-slate-950 dark:text-white">Presets</h2>
-									<p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Click a preset to load it.</p>
-								</div>
-								</div>
+					</div>
+					<aside className="relative min-w-0 self-start border-slate-200 lg:border-l lg:pl-8 dark:border-slate-700">
+						<div className="flex items-center justify-between gap-3">
+							<div className="flex min-w-0 items-center gap-2">
+								<Icon name="box" size={18} />
+								<h2 className="truncate text-base font-bold text-slate-950 dark:text-white">Presets</h2>
+							</div>
+							<div className="relative flex shrink-0 gap-1">
 								<button
 									aria-label="Copy all presets as JSON"
-									className="icon-button"
+									className="icon-button preset-icon"
 									title="Copy all presets as JSON"
 									type="button"
 									onClick={() => copyJson(presets, 'All presets copied as JSON.')}
 								>
 									<Icon name="copy" size={15} />
 								</button>
-							</div>
-							<div className="grid gap-3">
-								<div className="grid gap-2">
-									<span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-										Saved presets
-									</span>
-									{presets.length === 0 ? (
-										<p className="rounded-xl border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-400 dark:border-slate-600">
-											No saved presets yet.
-										</p>
-									) : (
-										<div className="grid gap-2">
-											{presets.map((preset) => (
-												<div
-													key={preset.id}
-													className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900"
-												>
-													<button
-														className="min-w-0 flex-1 justify-start truncate bg-transparent p-1 text-left text-sm font-semibold text-slate-700 hover:bg-transparent hover:text-orange-600 dark:text-slate-200 dark:hover:text-orange-400"
-														type="button"
-														onClick={() => loadPreset(preset)}
-													>
-														{preset.name}
-													</button>
-													<div className="flex shrink-0 gap-1">
-														<button
-															aria-label={`Copy ${preset.name} as JSON`}
-															className="icon-button"
-															title="Copy JSON"
-															type="button"
-															onClick={() => copyJson(preset, `"${preset.name}" copied as JSON.`)}
-														>
-															<Icon name="copy" size={15} />
-														</button>
-														<button className="icon-button" type="button" onClick={() => deletePreset(preset)}>
-															Delete
-														</button>
-													</div>
-												</div>
-											))}
-										</div>
-									)}
-								</div>
-								<div className="grid gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
-									<div className="flex gap-2">
-										<input
-											aria-label="New preset name"
-											type="text"
-											placeholder="New preset name"
-											value={presetName}
-											onChange={(event) => setPresetName(event.target.value)}
-											onKeyDown={(event) => {
-												if (event.key === 'Enter') savePreset();
-											}}
+								<button
+									aria-label="Import presets"
+									className="icon-button preset-icon"
+									title="Import presets"
+									type="button"
+									onClick={() => setShowImport((current) => !current)}
+								>
+									<Icon name="upload" size={15} />
+								</button>
+								{showImport && (
+									<div className="absolute right-0 top-full z-10 mt-2 grid w-64 gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+										<textarea
+											aria-label="Import preset JSON"
+											className="min-h-16 min-w-0 flex-1 resize-y rounded-lg border border-slate-300 bg-white p-2 text-xs text-slate-900 outline-none focus:border-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+											placeholder="Paste preset JSON"
+											value={importJson}
+											onChange={(event) => setImportJson(event.target.value)}
 										/>
-										<button type="button" onClick={savePreset}>
-											Save
+										<button
+											aria-label="Add imported presets"
+											className="icon-button preset-icon self-end"
+											disabled={!importJson.trim()}
+											title="Add imported presets"
+											type="button"
+											onClick={importPresets}
+										>
+											<Icon name="plus" size={15} />
 										</button>
+										{presetStatus && (
+											<p className="col-span-full truncate text-xs text-slate-500 dark:text-slate-400">
+												{presetStatus}
+											</p>
+										)}
 									</div>
-									<textarea
-										aria-label="Import preset JSON"
-										className="min-h-20 w-full resize-y rounded-xl border border-slate-300 bg-white p-2 text-xs text-slate-900 outline-none focus:border-orange-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-										placeholder="Paste preset JSON to import"
-										value={importJson}
-										onChange={(event) => setImportJson(event.target.value)}
-									/>
-									<button className="secondary" type="button" disabled={!importJson.trim()} onClick={importPresets}>
-										Import JSON
-									</button>
-								</div>
-								{presetStatus && <p className="text-xs text-slate-500 dark:text-slate-400">{presetStatus}</p>}
+								)}
 							</div>
-						</aside>
-					</div>
+						</div>
+						<div className="mt-2 border-t border-slate-200 lg:-ml-8 lg:pl-8 dark:border-slate-700">
+							<div className="preset-list max-h-76 divide-y divide-slate-200 overflow-y-auto dark:divide-slate-700">
+								{presets.length === 0 ?
+									<p className="py-2 text-xs text-slate-400 dark:text-slate-500">No saved presets yet.</p>
+								:	<>
+										{presets.map((preset) => (
+											<div
+												key={preset.id}
+												className="group relative flex min-h-8 min-w-0 items-center justify-between gap-2"
+											>
+												<button
+													className="absolute inset-0 z-0 justify-start truncate bg-transparent px-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-orange-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-orange-400"
+													type="button"
+													onClick={() => loadPreset(preset)}
+												>
+													{preset.name}
+												</button>
+												<div className="relative z-10 ml-auto flex shrink-0 gap-1 opacity-60 transition-opacity group-hover:opacity-100">
+													<button
+														aria-label={`Copy ${preset.name} as JSON`}
+														className="icon-button preset-icon"
+														title="Copy JSON"
+														type="button"
+														onClick={() => copyJson(preset, `"${preset.name}" copied as JSON.`)}
+													>
+														<Icon name="copy" size={15} />
+													</button>
+													<button
+														aria-label={`Delete ${preset.name}`}
+														className="icon-button preset-icon text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+														title={`Delete ${preset.name}`}
+														type="button"
+														onClick={() => deletePreset(preset)}
+													>
+														<Icon name="trash" size={15} />
+													</button>
+												</div>
+											</div>
+										))}
+									</>
+								}
+							</div>
+							<div className="flex min-h-8 min-w-0 items-center gap-2 border-t border-slate-200 px-1 dark:border-slate-700">
+								<input
+									aria-label="New preset name"
+									className="min-w-0 flex-1 border-0 bg-transparent p-1 text-sm shadow-none focus:border-0 focus:shadow-none"
+									type="text"
+									placeholder="Add a new preset…"
+									value={presetName}
+									onChange={(event) => setPresetName(event.target.value)}
+									onKeyDown={(event) => {
+										if (event.key === 'Enter') savePreset();
+									}}
+								/>
+								<button
+									aria-label="Save new preset"
+									className="icon-button preset-icon preset-add-icon"
+									disabled={!presetName.trim()}
+									title="Save new preset"
+									type="button"
+									onClick={savePreset}
+								>
+									<Icon name="plus" size={15} />
+								</button>
+							</div>
+						</div>
+					</aside>
+				</div>
+			</section>
+
+			<div className="grid items-start gap-6 lg:items-stretch lg:grid-cols-2">
+				<section className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
+					<LandingMap
+						a={aValue}
+						b={bValue}
+						origin={origin}
+						shot={shot}
+						target={target}
+						onAim={aimAt}
+						onSteer={(nextA) => updateInput('a', String(nextA))}
+					/>
 				</section>
 
-				<div className="grid items-start gap-6 lg:items-stretch lg:grid-cols-2">
-					<section className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7">
-						<LandingMap
-							a={aValue}
-							b={bValue}
-							origin={origin}
-							shot={shot}
-							target={target}
-							onAim={aimAt}
-							onSteer={(nextA) => updateInput('a', String(nextA))}
-						/>
-					</section>
-
-					<section
-						aria-labelledby="results-heading"
-						className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7"
-					>
-						<div className="mb-6 flex items-center justify-between gap-4">
-							<div className="min-w-0">
-								<p className="mb-1 text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
-									Calculated result
+				<section
+					aria-labelledby="results-heading"
+					className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7"
+				>
+					<div className="mb-6 flex items-center justify-between gap-4">
+						<div className="min-w-0">
+							<p className="mb-1 text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
+								Calculated result
+							</p>
+							<h2 id="results-heading" className="text-2xl font-black tracking-tight">
+								Landing coordinates
+							</h2>
+						</div>
+						<div className="shrink-0 rounded-xl bg-emerald-100 p-2.5 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+							<Icon name="map" />
+						</div>
+					</div>
+					<div className="mb-5 rounded-2xl bg-orange-50 p-5 dark:bg-orange-950/40">
+						<p className="mb-4 text-sm font-semibold text-orange-700 dark:text-orange-300">Destination coordinates</p>
+						<div className="grid gap-5 sm:grid-cols-3">
+							<div className="min-w-0 rounded-xl border border-orange-200 bg-white/60 p-4 dark:border-orange-900 dark:bg-orange-950/30 sm:col-span-2">
+								<p className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+									Nether
 								</p>
-								<h2 id="results-heading" className="text-2xl font-black tracking-tight">
-									Landing coordinates
-								</h2>
-							</div>
-							<div className="shrink-0 rounded-xl bg-emerald-100 p-2.5 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-								<Icon name="map" />
-							</div>
-						</div>
-						<div className="mb-5 rounded-2xl bg-orange-50 p-5 dark:bg-orange-950/40">
-							<p className="mb-4 text-sm font-semibold text-orange-700 dark:text-orange-300">Destination coordinates</p>
-							<div className="grid gap-5 sm:grid-cols-3">
-								<div className="min-w-0 rounded-xl border border-orange-200 bg-white/60 p-4 dark:border-orange-900 dark:bg-orange-950/30 sm:col-span-2">
-									<p className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
-										Nether
-									</p>
-									<div className="mt-3 grid grid-cols-3 gap-2 lg:gap-1 xl:gap-3">
-										<div className="coordinate-cell min-w-0">
-											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">X</p>
-											<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">
-												{shot.landing.x.toFixed(1)}
-											</p>
-										</div>
-										<div className="coordinate-cell min-w-0">
-											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Y</p>
-											<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">128</p>
-										</div>
-										<div className="coordinate-cell min-w-0">
-											<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Z</p>
-											<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">
-												{shot.landing.z.toFixed(1)}
-											</p>
-										</div>
+								<div className="mt-3 grid grid-cols-3 gap-2 lg:gap-1 xl:gap-3">
+									<div className="coordinate-cell min-w-0">
+										<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">X</p>
+										<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">
+											{shot.landing.x.toFixed(1)}
+										</p>
+									</div>
+									<div className="coordinate-cell min-w-0">
+										<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Y</p>
+										<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">
+											128
+										</p>
+									</div>
+									<div className="coordinate-cell min-w-0">
+										<p className="text-xs font-semibold text-orange-700 dark:text-orange-300">Z</p>
+										<p className="coordinate-value font-black tracking-tight text-orange-950 dark:text-orange-100">
+											{shot.landing.z.toFixed(1)}
+										</p>
 									</div>
 								</div>
-								<div className="min-w-0 rounded-xl border border-sky-200 bg-white/60 p-4 dark:border-sky-900 dark:bg-sky-950/30 sm:col-span-1">
-									<p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">
-										Overworld · ×8
-									</p>
-									<div className="mt-3 grid grid-cols-2 gap-2 lg:gap-1 xl:gap-3">
-										<div className="coordinate-cell min-w-0">
-											<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">X</p>
-											<p className="coordinate-value font-black tracking-tight text-sky-950 dark:text-sky-100">
-												{overworld.x.toFixed(0)}
-											</p>
-										</div>
-										<div className="coordinate-cell min-w-0">
-											<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">Z</p>
-											<p className="coordinate-value font-black tracking-tight text-sky-950 dark:text-sky-100">
-												{overworld.z.toFixed(0)}
-											</p>
-										</div>
+							</div>
+							<div className="min-w-0 rounded-xl border border-sky-200 bg-white/60 p-4 dark:border-sky-900 dark:bg-sky-950/30 sm:col-span-1">
+								<p className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">
+									Overworld · ×8
+								</p>
+								<div className="mt-3 grid grid-cols-2 gap-2 lg:gap-1 xl:gap-3">
+									<div className="coordinate-cell min-w-0">
+										<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">X</p>
+										<p className="coordinate-value font-black tracking-tight text-sky-950 dark:text-sky-100">
+											{overworld.x.toFixed(0)}
+										</p>
+									</div>
+									<div className="coordinate-cell min-w-0">
+										<p className="text-xs font-semibold text-sky-700 dark:text-sky-300">Z</p>
+										<p className="coordinate-value font-black tracking-tight text-sky-950 dark:text-sky-100">
+											{overworld.z.toFixed(0)}
+										</p>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+					</div>
+					<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
 						<div className="metric">
 							<Icon name="box" />
 							<span>Control A items</span>
@@ -589,8 +630,8 @@ export function InteractiveCalculator() {
 						<strong className="text-slate-700 dark:text-slate-200">Miss vs target:</strong> {missDistance.toFixed(0)}{' '}
 						blocks · Flight: {shot.ticks.toFixed()} ticks ({(shot.ticks / 20).toFixed(1)} s)
 					</p>
-					</section>
-				</div>
+				</section>
+			</div>
 		</>
 	);
 }
