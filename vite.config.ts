@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
-import tailwindcss from '@tailwindcss/vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
 import babel from '@rolldown/plugin-babel';
+import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 
 // https://vite.dev/config/
